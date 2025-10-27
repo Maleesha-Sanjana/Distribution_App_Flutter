@@ -1,0 +1,75 @@
+# Flutter & Dart
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+.melos_tool/
+
+# Builds
+build/
+**/build/
+coverage/
+coverage.lcov
+
+# OS
+.DS_Store
+
+# IDEs/Editors
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Android
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/key.properties
+**/android/**/build/
+
+# iOS
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/.symlinks/
+**/ios/Pods/
+**/ios/build/
+**/ios/**/xcuserdata/
+**/ios/**.xcuserstate
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+**/macos/Flutter/ephemeral/
+**/macos/Pods/
+**/macos/build/
+**/macos/**/xcuserdata/
+**/macos/**.xcuserstate
+**/macos/Runner/GeneratedPluginRegistrant.*
+
+# Windows
+**/windows/flutter/ephemeral/
+**/windows/Runner/GeneratedPluginRegistrant.*
+**/windows/build/
+
+# Linux
+**/linux/flutter/ephemeral/
+**/linux/Runner/GeneratedPluginRegistrant.*
+**/linux/build/
+
+# Web
+# Flutter web output goes to /build which is already ignored
+
+# Node (if present for tooling)
+node_modules/
+
+# Fastlane
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots/
+
+# Env files (optional; uncomment if used)
+# .env
+# .env.*
