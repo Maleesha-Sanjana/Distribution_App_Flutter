@@ -227,7 +227,7 @@ class _LandingPageState extends State<LandingPage>
                               const SizedBox(height: 32),
                               // Title with better typography
                               Text(
-                                'Distribution App',
+                                'Salesman Utility',
                                 style: theme.textTheme.displaySmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -237,7 +237,7 @@ class _LandingPageState extends State<LandingPage>
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Manage distribution orders and deliveries efficiently',
+                                'Tools for fast, on-the-go sales operations',
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   color: Colors.white.withOpacity(0.9),
                                   fontWeight: FontWeight.w400,
