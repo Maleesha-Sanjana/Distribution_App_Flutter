@@ -6,6 +6,15 @@ import 'pages/distribution_home_page.dart';
 import 'pages/customer_onboarding_page.dart';
 import 'pages/payment_receipt_page.dart';
 import 'pages/sales_return_page.dart';
+import 'pages/my_sales_dashboard_page.dart';
+import 'pages/sales_order_page.dart';
+import 'pages/quotation_page.dart';
+import 'pages/stock_reports_page.dart';
+import 'pages/stock_my_stock_page.dart';
+import 'pages/stock_location_wise_page.dart';
+import 'pages/my_invoice_page.dart';
+import 'pages/my_return_page.dart';
+import 'pages/to_be_collected_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/menu_provider.dart';
 import 'providers/cart_provider.dart';
@@ -240,6 +249,15 @@ class MyApp extends StatelessWidget {
           '/customer-create': (_) => const CustomerCreationPage(),
           '/receipt': (_) => const ReceiptPage(),
           '/customer-return': (_) => const CustomerReturnPage(),
+          '/my-sales': (_) => const MySalesDashboardPage(),
+          '/my-invoice': (_) => const MyInvoicePage(),
+          '/my-return': (_) => const MyReturnPage(),
+          '/to-be-collected': (_) => const ToBeCollectedPage(),
+          '/sales-order': (_) => const SalesOrderPage(),
+          '/quotation': (_) => const QuotationPage(),
+          '/stock-reports': (_) => const StockReportsPage(),
+          '/my-stock': (_) => const MyStockPage(),
+          '/location-stock': (_) => const LocationWiseStockPage(),
         },
       ),
     );

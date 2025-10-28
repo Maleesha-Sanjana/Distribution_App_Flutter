@@ -36,6 +36,8 @@ android {
     }
 }
 
+// Note: custom APK renaming removed for compatibility with current Android Gradle Plugin
+
 flutter {
     source = "../.."
 }
