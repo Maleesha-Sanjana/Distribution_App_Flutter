@@ -74,7 +74,7 @@ class HomePage extends StatelessWidget {
               buildCard(
                 icon: Icons.request_quote_rounded,
                 title: 'Invoice',
-                onTap: () => Navigator.of(context).pushNamed('/waiter'),
+                onTap: () => Navigator.of(context).pushNamed('/invoices'),
                 color: const Color(0xFF10B981),
               ),
               // Receipt

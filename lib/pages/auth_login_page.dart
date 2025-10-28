@@ -227,7 +227,7 @@ class _LandingPageState extends State<LandingPage>
                               const SizedBox(height: 32),
                               // Title with better typography
                               Text(
-                                'Sales Order',
+                                'Distribution App',
                                 style: theme.textTheme.displaySmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -237,7 +237,7 @@ class _LandingPageState extends State<LandingPage>
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Record customer orders for plastic items quickly while visiting customers',
+                                'Manage distribution orders and deliveries efficiently',
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   color: Colors.white.withOpacity(0.9),
                                   fontWeight: FontWeight.w400,
@@ -304,7 +304,7 @@ class _LandingPageState extends State<LandingPage>
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Enter your credentials to continue',
+                                          'Enter your password to continue',
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
                                                 color: Colors.white.withOpacity(
@@ -450,7 +450,7 @@ class _LandingPageState extends State<LandingPage>
                                                     ),
                                                   )
                                                 : Text(
-                                                    'Sign In',
+                                                    'Log In',
                                                     style: theme
                                                         .textTheme
                                                         .titleMedium
@@ -475,7 +475,7 @@ class _LandingPageState extends State<LandingPage>
                           const SizedBox(height: 40),
                           // Footer with additional info
                           Text(
-                            'Secure • Fast • Reliable',
+                            'Secure • Efficient • Scalable',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: Colors.white.withOpacity(0.7),
                               fontWeight: FontWeight.w500,
