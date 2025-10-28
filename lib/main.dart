@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'pages/landing_page.dart';
-import 'pages/sales_order_dashboard.dart';
-import 'pages/home_page.dart';
-import 'pages/customer_creation_page.dart';
-import 'pages/receipt_page.dart';
-import 'pages/customer_return_page.dart';
+import 'pages/auth_login_page.dart';
+import 'pages/invoice_dashboard_page.dart';
+import 'pages/distribution_home_page.dart';
+import 'pages/customer_onboarding_page.dart';
+import 'pages/payment_receipt_page.dart';
+import 'pages/sales_return_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/menu_provider.dart';
 import 'providers/cart_provider.dart';
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       ],
 
       child: MaterialApp(
-        title: 'Sales Order',
+        title: 'Distribution App',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
@@ -235,7 +235,7 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (_) => const LandingPage(),
-          '/waiter': (_) => const SalesOrderDashboard(),
+          '/invoices': (_) => const SalesOrderDashboard(),
           '/home': (_) => const HomePage(),
           '/customer-create': (_) => const CustomerCreationPage(),
           '/receipt': (_) => const ReceiptPage(),

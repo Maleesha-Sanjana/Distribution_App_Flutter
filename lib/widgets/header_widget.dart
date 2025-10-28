@@ -9,6 +9,7 @@ class HeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final auth = context.watch<AuthProvider>();
+    final canPop = Navigator.of(context).canPop();
 
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 16, 20, 4),
@@ -31,6 +32,16 @@ class HeaderWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
+            if (canPop)
+              IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: Icon(
+                  Icons.arrow_back_rounded,
+                  color: theme.colorScheme.onSurface,
+                  size: 20,
+                ),
+                tooltip: 'Back',
+              ),
             // User Avatar (smaller)
             Container(
               width: 40,
