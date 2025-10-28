@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/landing_page.dart';
 import 'pages/sales_order_dashboard.dart';
+import 'pages/home_page.dart';
+import 'pages/customer_creation_page.dart';
+import 'pages/receipt_page.dart';
+import 'pages/customer_return_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/menu_provider.dart';
 import 'providers/cart_provider.dart';
@@ -232,6 +236,10 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (_) => const LandingPage(),
           '/waiter': (_) => const SalesOrderDashboard(),
+          '/home': (_) => const HomePage(),
+          '/customer-create': (_) => const CustomerCreationPage(),
+          '/receipt': (_) => const ReceiptPage(),
+          '/customer-return': (_) => const CustomerReturnPage(),
         },
       ),
     );

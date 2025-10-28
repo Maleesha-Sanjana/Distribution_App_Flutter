@@ -76,7 +76,7 @@ class _LandingPageState extends State<LandingPage>
       if (success) {
         // Check if salesman is active
         if (auth.isCurrentSalesmanActive) {
-          Navigator.of(context).pushReplacementNamed('/waiter');
+          Navigator.of(context).pushReplacementNamed('/home');
         } else {
           // Show error for inactive salesmen
           ScaffoldMessenger.of(context).showSnackBar(
