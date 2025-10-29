@@ -10,6 +10,63 @@ class InvoiceSimplePage extends StatefulWidget {
 
 class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   String _salesType = 'Retail';
+  final _manualController = TextEditingController();
+  final _remarksController = TextEditingController();
+  final List<Map<String, dynamic>> _rows = [];
+
+  @override
+  void dispose() {
+    _manualController.dispose();
+    _remarksController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openRemarksDialog() async {
+    final tempController = TextEditingController(text: _remarksController.text);
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          title: const Text('Remarks'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: TextField(
+              controller: tempController,
+              autofocus: true,
+              maxLines: null,
+              minLines: 6,
+              decoration: const InputDecoration(
+                hintText: 'Type remarks here...',
+                border: OutlineInputBorder(),
+                isDense: false,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+              ),
+              onPressed: () {
+                if (!mounted) return;
+                setState(() {
+                  _remarksController.text = tempController.text;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +78,6 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Invoice',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -37,7 +88,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     label: const Text('Select Customer'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: theme.colorScheme.onPrimary,
                       elevation: 0,
@@ -57,7 +110,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                   style: IconButton.styleFrom(
                     padding: const EdgeInsets.all(8),
                     minimumSize: const Size(40, 40),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],
@@ -68,7 +123,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 final selected = await showModalBottomSheet<String>(
                   context: context,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                   ),
                   builder: (context) {
                     return SafeArea(
@@ -98,45 +155,129 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
               icon: const Icon(Icons.sell_rounded),
               label: Text('Sales Type: $_salesType'),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Customer's Quotations: not implemented")),
+                        const SnackBar(
+                          content: Text("Quotations: not implemented"),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.description_rounded),
-                    label: const Text("Customer's Quotations"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    label: const Text("Quotations"),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      elevation: 0,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Customer's Sales Orders: not implemented")),
+                        const SnackBar(
+                          content: Text("Sales Orders: not implemented"),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.shopping_cart_rounded),
-                    label: const Text("Customer's Sales Order"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    label: const Text("Sales Order"),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      elevation: 0,
                     ),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _manualController,
+                    decoration: const InputDecoration(
+                      hintText: 'Manual #',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _remarksController,
+                    readOnly: true,
+                    onTap: _openRemarksDialog,
+                    decoration: const InputDecoration(
+                      hintText: 'Remarks',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      suffixIcon: Icon(Icons.open_in_full_rounded),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(children: [ 
+              ],
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Item')),
+                      DataColumn(label: Text('Qty')),
+                      DataColumn(label: Text('Discount')),
+                      DataColumn(label: Text('Price')),
+                    ],
+                    rows: _rows
+                        .map(
+                          (r) => DataRow(
+                            cells: [
+                              DataCell(Text('${r['item']}')),
+                              DataCell(Text('${r['qty']}')),
+                              DataCell(Text('${r['discount']}')),
+                              DataCell(Text('${r['price']}')),
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
