@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/auth_login_page.dart';
-import 'pages/invoice_dashboard_page.dart';
+import 'pages/invoice_simple_page.dart';
 import 'pages/distribution_home_page.dart';
 import 'pages/customer_onboarding_page.dart';
 import 'pages/payment_receipt_page.dart';
@@ -244,7 +244,7 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (_) => const LandingPage(),
-          '/invoices': (_) => const SalesOrderDashboard(),
+          '/invoices': (_) => const InvoiceSimplePage(),
           '/home': (_) => const HomePage(),
           '/customer-create': (_) => const CustomerCreationPage(),
           '/receipt': (_) => const ReceiptPage(),
