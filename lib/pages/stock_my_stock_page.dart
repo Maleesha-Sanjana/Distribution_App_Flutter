@@ -10,88 +10,201 @@ class MyStockPage extends StatefulWidget {
 class _MyStockPageState extends State<MyStockPage> {
   final _searchController = TextEditingController();
   final List<Map<String, dynamic>> _items = [
-    {'name': 'Product 1', 'qty': 25},
-    {'name': 'Product 2', 'qty': 0},
-    {'name': 'Product 3', 'qty': 7},
-    {'name': 'Product 4', 'qty': 120},
-    {'name': 'Product 5', 'qty': -3},
-    {'name': 'Product 6', 'qty': 42},
-    {'name': 'Product 7', 'qty': 15},
-    {'name': 'Product 8', 'qty': 0},
-    {'name': 'Product 9', 'qty': 2},
-    {'name': 'Product 10', 'qty': 88},
+    {
+      'name': 'Nadu Rice 5kg',
+      'qty': 25,
+      'price': 1_250.00,
+      'department': 'Staples & Rice',
+      'subDepartment': 'Nadu Rice',
+      'category': 'Rice & Grains',
+      'subCategory': 'Nadu',
+      'supplier': 'Cargills',
+    },
+    {
+      'name': 'Samba Rice 10kg',
+      'qty': 0,
+      'price': 3_250.00,
+      'department': 'Staples & Rice',
+      'subDepartment': 'Samba Rice',
+      'category': 'Rice & Grains',
+      'subCategory': 'Samba',
+      'supplier': 'Keells',
+    },
+    {
+      'name': 'Ceylon Black Tea 200g',
+      'qty': 7,
+      'price': 950.50,
+      'department': 'Tea & Beverages',
+      'subDepartment': 'Ceylon Tea',
+      'category': 'Tea',
+      'subCategory': 'Ceylon Black Tea',
+      'supplier': 'Dilmah',
+    },
+    {
+      'name': 'Coconut Milk Powder 400g',
+      'qty': 120,
+      'price': 845.00,
+      'department': 'Coconut Products',
+      'subDepartment': 'Coconut Milk',
+      'category': 'Coconut Products',
+      'subCategory': 'Coconut Milk Powder',
+      'supplier': 'Ruhunu Foods',
+    },
+    {
+      'name': 'Maldive Fish 100g',
+      'qty': -3,
+      'price': 1_299.00,
+      'department': 'Canned & Dry Fish',
+      'subDepartment': 'Maldive Fish',
+      'category': 'Canned & Dry Fish',
+      'subCategory': 'Katta Sambol',
+      'supplier': 'MD (Mauby David)',
+    },
+    {
+      'name': 'Ceylon Cinnamon Sticks 50g',
+      'qty': 42,
+      'price': 1_750.00,
+      'department': 'Spices & Condiments',
+      'subDepartment': 'Ceylon Cinnamon',
+      'category': 'Spices',
+      'subCategory': 'Cinnamon',
+      'supplier': 'Harischandra',
+    },
+    {
+      'name': 'Coconut Oil 1L',
+      'qty': 15,
+      'price': 1_150.75,
+      'department': 'Coconut Products',
+      'subDepartment': 'Coconut Oil',
+      'category': 'Coconut Products',
+      'subCategory': 'Desiccated Coconut',
+      'supplier': 'Green Valley Foods',
+    },
+    {
+      'name': 'Katta Sambol 200g',
+      'qty': 0,
+      'price': 280.00,
+      'department': 'Sambols & Chutneys',
+      'subDepartment': 'Katta Sambol',
+      'category': 'Sambols & Chutneys',
+      'subCategory': 'Katta Sambol',
+      'supplier': 'MD (Mauby David)',
+    },
+    {
+      'name': 'String Hopper Flour 1kg',
+      'qty': 2,
+      'price': 1_099.90,
+      'department': 'Bakery & Flour',
+      'subDepartment': 'Flour & Batters',
+      'category': 'Flour & Batters',
+      'subCategory': 'Surface Cleaners',
+      'supplier': 'Motha',
+    },
+    {
+      'name': 'Kithul Treacle 350ml',
+      'qty': 88,
+      'price': 750.00,
+      'department': 'Sweets & Desserts',
+      'subDepartment': 'Sweets',
+      'category': 'Sweets',
+      'subCategory': 'Nuts',
+      'supplier': 'Maliban',
+    },
   ];
 
   // View By selection and dependent lists
   String _viewBy = 'Product Wise';
   String? _chosenFilter; // Selected department/sub-dept/category/etc.
   bool _displayAll = false; // Display all toggle
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
 
   final List<String> _departments = const [
-    'Beverages',
-    'Snacks',
-    'Household',
-    'Dairy',
-    'Bakery',
-    'Frozen',
-    'Produce',
-    'Meat',
-    'Health & Beauty',
-    'Stationery',
+    'Staples & Rice',
+    'Spices & Condiments',
+    'Coconut Products',
+    'Tea & Beverages',
+    'Snacks & Short Eats',
+    'Sweets & Desserts',
+    'Bakery & Flour',
+    'Canned & Dry Fish',
+    'Fresh Produce',
+    'Dairy & Chilled',
   ];
   final List<String> _subDepartments = const [
-    'Soft Drinks',
-    'Chips',
-    'Detergents',
-    'Yogurt',
-    'Bread',
-    'Ice Cream',
-    'Leafy Greens',
-    'Poultry',
-    'Shampoos',
-    'Notebooks',
+    'Samba Rice',
+    'Nadu Rice',
+    'Red Raw Rice',
+    'Ceylon Cinnamon',
+    'Ceylon Cloves',
+    'Black Pepper',
+    'Coconut Milk',
+    'Coconut Oil',
+    'Ceylon Tea',
+    'Maldive Fish',
   ];
   final List<String> _categories = const [
-    'Groceries',
-    'Personal Care',
-    'Electronics',
-    'Home Care',
-    'Baby Care',
-    'Beverage',
+    'Rice & Grains',
+    'Spices',
+    'Coconut Products',
+    'Tea',
+    'Curry Pastes & Mixes',
+    'Flour & Batters',
     'Snacks',
-    'Pharmacy',
-    'Pets',
-    'Toys',
+    'Sweets',
+    'Sambols & Chutneys',
+    'Canned & Dry Fish',
   ];
   final List<String> _subCategories = const [
-    'Soda',
-    'Biscuits',
-    'Shampoos',
-    'Surface Cleaners',
-    'Diapers',
-    'Juices',
-    'Nuts',
-    'Vitamins',
-    'Dog Food',
-    'Puzzles',
+    'Nadu',
+    'Samba',
+    'Red Raw',
+    'Cinnamon',
+    'Cardamom',
+    'Cloves',
+    'Coconut Milk Powder',
+    'Desiccated Coconut',
+    'Ceylon Black Tea',
+    'Katta Sambol',
   ];
   final List<String> _suppliers = const [
-    'ABC Distributors',
-    'Mega Supply',
-    'Sunrise Traders',
-    'Blue Ocean Imports',
-    'Green Valley Foods',
-    'Prime Wholesale',
-    'Cityline Suppliers',
-    'NorthStar Co.',
-    'Pearl Distributors',
-    'Unity Traders',
+    'Cargills',
+    'Keells',
+    'Harischandra',
+    'Ruhunu Foods',
+    'MD (Mauby David)',
+    'Motha',
+    'Dilmah',
+    'Maliban',
+    'Munchee',
+    'Lanka Sathosa',
   ];
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Removed _formatLkr; using plain number formatter for table rows
+
+  String _formatLkrPlain(num value) {
+    final negative = value < 0;
+    final absVal = value.abs();
+    final whole = absVal.floor();
+    final frac = ((absVal - whole) * 100).round();
+    String wholeStr = whole.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < wholeStr.length; i++) {
+      final idxFromRight = wholeStr.length - i;
+      buf.write(wholeStr[i]);
+      if (idxFromRight > 1 && idxFromRight % 3 == 1) {
+        buf.write(',');
+      }
+    }
+    final formattedWhole = buf.toString();
+    final formattedFrac = frac.toString().padLeft(2, '0');
+    return '${negative ? '-' : ''}$formattedWhole.$formattedFrac';
   }
 
   Widget _buildAdaptiveSearch() {
@@ -272,6 +385,27 @@ class _MyStockPageState extends State<MyStockPage> {
       return nameMatch && stockMatch;
     }).toList();
 
+    // Apply sorting
+    int compareName(a, b) => (a['name'] as String).toLowerCase().compareTo((b['name'] as String).toLowerCase());
+    int compareQty(a, b) => (a['qty'] as num).compareTo(b['qty'] as num);
+    int comparePrice(a, b) => ((a['price'] as num?) ?? 0).compareTo(((b['price'] as num?) ?? 0));
+    if (_sortColumnIndex != null) {
+      switch (_sortColumnIndex) {
+        case 0:
+          filtered.sort(compareName);
+          break;
+        case 1:
+          filtered.sort(compareQty);
+          break;
+        case 2:
+          filtered.sort(comparePrice);
+          break;
+      }
+      if (!_sortAscending) {
+        filtered.setAll(0, filtered.reversed);
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Stock'),
@@ -385,45 +519,224 @@ class _MyStockPageState extends State<MyStockPage> {
             _buildAdaptiveSearch(),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.separated(
-                itemCount: filtered.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final it = filtered[index];
-                  final qty = it['qty'] as int;
-                  final inStock = qty > 0;
-                  return ListTile(
-                    tileColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.15)),
-                    ),
-                    title: Text(it['name']),
-                    subtitle: Text('Qty: $qty'),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: (inStock ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2)),
-                        borderRadius: BorderRadius.circular(100),
-                        border: Border.all(
-                          color: (inStock ? const Color(0xFF34D399) : const Color(0xFFEF4444)).withOpacity(0.3),
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      // Real-time width from the table container
+                      const double hMargin = 4;
+                      const double colSpacing = 12;
+                      const double stockW = 56;
+                      const double priceW = 84;
+                      final double available = box.maxWidth - (hMargin * 2) - (colSpacing * 2) - stockW - priceW;
+                      final double itemW = available.clamp(120.0, box.maxWidth);
+
+                      return Scrollbar(
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columnSpacing: colSpacing,
+                            headingRowHeight: 40,
+                            dataRowMinHeight: 38,
+                            dataRowMaxHeight: 46,
+                            columns: [
+                              DataColumn(
+                                label: const Text('Item'),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = col;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                numeric: true,
+                                label: const Text('Stock'),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = col;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                numeric: true,
+                                label: const Text('Price (Rs.)'),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = col;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                            ],
+                            rows: _buildGroupedRows(
+                              context: context,
+                              theme: theme,
+                              rows: filtered,
+                              itemW: itemW,
+                              stockW: stockW,
+                              priceW: priceW,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        inStock ? 'In stock' : 'Out of stock',
-                        style: TextStyle(
-                          color: inStock ? const Color(0xFF065F46) : const Color(0xFF991B1B),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  List<DataRow> _buildGroupedRows({
+    required BuildContext context,
+    required ThemeData theme,
+    required List<Map<String, dynamic>> rows,
+    required double itemW,
+    required double stockW,
+    required double priceW,
+  }) {
+    // Helper to truncate with custom dots
+    String trunc(String text, double width) {
+      final maxChars = (width / 7).floor().clamp(6, 120);
+      if (text.length > maxChars) {
+        return text.substring(0, (maxChars - 5).clamp(0, text.length)) + '.....';
+      }
+      return text;
+    }
+
+    // Decide grouping mode
+    final mode = _viewBy;
+    final selected = _chosenFilter;
+
+    // Utility to add a group header row
+    DataRow headerRow(String title) => DataRow(
+          color: MaterialStateProperty.resolveWith(
+            (_) => theme.colorScheme.primary.withOpacity(0.06),
+          ),
+          cells: [
+            DataCell(SizedBox(
+              width: itemW,
+              child: Text(
+                title,
+                maxLines: 1,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            )),
+            const DataCell(Text('')),
+            const DataCell(Text('')),
+          ],
+        );
+
+    // Product row builder
+    DataRow productRow(Map<String, dynamic> it, int index) {
+      final qty = (it['qty'] as num?)?.toInt() ?? 0;
+      final price = (it['price'] as num?) ?? 0;
+      final inStock = qty > 0;
+      final name = (it['name'] as String?) ?? '';
+      return DataRow(
+        color: MaterialStateProperty.resolveWith(
+          (_) => index.isEven ? theme.colorScheme.surface : theme.colorScheme.surfaceVariant.withOpacity(0.3),
+        ),
+        cells: [
+          DataCell(SizedBox(width: itemW, child: Text(trunc(name, itemW), maxLines: 1))),
+          DataCell(SizedBox(
+            width: stockW,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$qty',
+                style: TextStyle(color: inStock ? theme.colorScheme.onSurface : const Color(0xFFEF4444)),
+              ),
+            ),
+          )),
+          DataCell(SizedBox(
+            width: priceW,
+            child: Align(alignment: Alignment.centerRight, child: Text(_formatLkrPlain(price))),
+          )),
+        ],
+      );
+    }
+
+    final List<DataRow> out = [];
+
+    // No grouping (Product Wise)
+    if (mode == 'Product Wise') {
+      for (var i = 0; i < rows.length; i++) {
+        out.add(productRow(rows[i], i));
+      }
+      return out;
+    }
+
+    // Single-level grouping helper
+    void groupByKey(String key) {
+      final grouped = <String, List<Map<String, dynamic>>>{};
+      for (final it in rows) {
+        final k = (it[key] as String?) ?? 'Unknown';
+        if (selected != null && selected.isNotEmpty && selected != k) continue;
+        grouped.putIfAbsent(k, () => []).add(it);
+      }
+      final sortedKeys = grouped.keys.toList()..sort();
+      for (final k in sortedKeys) {
+        out.add(headerRow(k));
+        final list = grouped[k]!;
+        for (var i = 0; i < list.length; i++) {
+          out.add(productRow(list[i], i));
+        }
+      }
+    }
+
+    // Two-level grouping helper (parentKey -> childKey)
+    void groupByTwo(String parentKey, String childKey) {
+      final parents = <String, List<Map<String, dynamic>>>{};
+      for (final it in rows) {
+        final pk = (it[parentKey] as String?) ?? 'Unknown';
+        parents.putIfAbsent(pk, () => []).add(it);
+      }
+      final sortedParents = parents.keys.toList()..sort();
+      for (final pk in sortedParents) {
+        if (selected != null && selected.isNotEmpty && selected != pk) continue;
+        out.add(headerRow(pk));
+        final children = <String, List<Map<String, dynamic>>>{};
+        for (final it in parents[pk]!) {
+          final ck = (it[childKey] as String?) ?? 'Unknown';
+          children.putIfAbsent(ck, () => []).add(it);
+        }
+        final sortedChildren = children.keys.toList()..sort();
+        for (final ck in sortedChildren) {
+          out.add(headerRow('  • $ck'));
+          final list = children[ck]!;
+          for (var i = 0; i < list.length; i++) {
+            out.add(productRow(list[i], i));
+          }
+        }
+      }
+    }
+
+    switch (mode) {
+      case 'Department Wise':
+        groupByKey('department');
+        break;
+      case 'Sub-Department Wise':
+        groupByTwo('department', 'subDepartment');
+        break;
+      case 'Category Wise':
+        groupByKey('category');
+        break;
+      case 'Sub Category Wise':
+        groupByTwo('category', 'subCategory');
+        break;
+      case 'Supplier Wise':
+        groupByKey('supplier');
+        break;
+      default:
+        for (var i = 0; i < rows.length; i++) {
+          out.add(productRow(rows[i], i));
+        }
+    }
+
+    return out;
   }
 }

@@ -66,16 +66,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.black54,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
               ],
             ),
           ),
