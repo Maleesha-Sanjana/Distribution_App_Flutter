@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../providers/cart_provider.dart';
-import '../models/cart_item.dart';
 
 class InvoiceSimplePage extends StatefulWidget {
   const InvoiceSimplePage({super.key});
@@ -14,14 +13,13 @@ class InvoiceSimplePage extends StatefulWidget {
 }
 
 class _CustomerSelectionDialog extends StatefulWidget {
-  const _CustomerSelectionDialog({
-    required this.customers,
-  });
+  const _CustomerSelectionDialog({required this.customers});
 
   final List<Map<String, String>> customers;
 
   @override
-  State<_CustomerSelectionDialog> createState() => _CustomerSelectionDialogState();
+  State<_CustomerSelectionDialog> createState() =>
+      _CustomerSelectionDialogState();
 }
 
 class _CustomerSelectionDialogState extends State<_CustomerSelectionDialog> {
@@ -60,7 +58,9 @@ class _CustomerSelectionDialogState extends State<_CustomerSelectionDialog> {
         final code = customer['code']?.toLowerCase() ?? '';
         final name = customer['name']?.toLowerCase() ?? '';
         final phone = customer['phone']?.toLowerCase() ?? '';
-        return code.contains(lowerQuery) || name.contains(lowerQuery) || phone.contains(lowerQuery);
+        return code.contains(lowerQuery) ||
+            name.contains(lowerQuery) ||
+            phone.contains(lowerQuery);
       }).toList();
     });
   }
@@ -125,8 +125,10 @@ class _CustomerSelectionDialogState extends State<_CustomerSelectionDialog> {
                             ),
                           ),
                           leading: CircleAvatar(
-                            backgroundColor: theme.colorScheme.secondaryContainer,
-                            foregroundColor: theme.colorScheme.onSecondaryContainer,
+                            backgroundColor:
+                                theme.colorScheme.secondaryContainer,
+                            foregroundColor:
+                                theme.colorScheme.onSecondaryContainer,
                             child: const Icon(Icons.person_rounded),
                           ),
                           title: Text('$code • $name'),
@@ -236,11 +238,16 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   ];
 
   List<Map<String, String>> get _filteredQuotations => _selectedCustomer != null
-      ? _mockQuotations.where((q) => q['customer'] == _selectedCustomer!['name']).toList()
+      ? _mockQuotations
+            .where((q) => q['customer'] == _selectedCustomer!['name'])
+            .toList()
       : [];
 
-  List<Map<String, String>> get _filteredSalesOrders => _selectedCustomer != null
-      ? _mockSalesOrders.where((so) => so['customer'] == _selectedCustomer!['name']).toList()
+  List<Map<String, String>> get _filteredSalesOrders =>
+      _selectedCustomer != null
+      ? _mockSalesOrders
+            .where((so) => so['customer'] == _selectedCustomer!['name'])
+            .toList()
       : [];
 
   static const List<Map<String, dynamic>> _mockItems = [
@@ -297,22 +304,34 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     required bool useAmountDiscount,
   }) {
     if (selectedItem == null) {
-      return const _DiscountValidationResult(errorMessage: 'Select an item first.');
+      return const _DiscountValidationResult(
+        errorMessage: 'Select an item first.',
+      );
     }
 
     final quantity = int.tryParse(quantityText.trim());
     if (quantity == null || quantity <= 0) {
-      return const _DiscountValidationResult(errorMessage: 'Quantity must be above zero.');
+      return const _DiscountValidationResult(
+        errorMessage: 'Quantity must be above zero.',
+      );
     }
 
-    final freeQuantity = int.tryParse(freeQuantityText.trim().isEmpty ? '0' : freeQuantityText.trim());
+    final freeQuantity = int.tryParse(
+      freeQuantityText.trim().isEmpty ? '0' : freeQuantityText.trim(),
+    );
     if (freeQuantity == null || freeQuantity < 0) {
-      return const _DiscountValidationResult(errorMessage: 'Enter a valid free quantity.');
+      return const _DiscountValidationResult(
+        errorMessage: 'Enter a valid free quantity.',
+      );
     }
 
-    final discountValue = double.tryParse(discountText.trim().isEmpty ? '0' : discountText.trim());
+    final discountValue = double.tryParse(
+      discountText.trim().isEmpty ? '0' : discountText.trim(),
+    );
     if (discountValue == null || discountValue < 0) {
-      return const _DiscountValidationResult(errorMessage: 'Enter a valid discount.');
+      return const _DiscountValidationResult(
+        errorMessage: 'Enter a valid discount.',
+      );
     }
 
     final unitPrice = (selectedItem['price'] as num).toDouble();
@@ -345,7 +364,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
         ? 'Rs ${discountAmount.toStringAsFixed(2)}'
         : '${discountValue.toStringAsFixed(2)}%';
 
-    final summary = '${useAmountDiscount ? 'Flat' : 'Percent'} discount • Net Rs ${finalPrice.toStringAsFixed(2)}';
+    final summary =
+        '${useAmountDiscount ? 'Flat' : 'Percent'} discount • Net Rs ${finalPrice.toStringAsFixed(2)}';
 
     return _DiscountValidationResult(
       itemLabel: '${selectedItem['code']} • ${selectedItem['name']}',
@@ -360,7 +380,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   Future<Map<String, String>?> _showCustomerDialog() {
     return showDialog<Map<String, String>?>(
       context: context,
-      builder: (dialogContext) => _CustomerSelectionDialog(customers: _mockCustomers),
+      builder: (dialogContext) =>
+          _CustomerSelectionDialog(customers: _mockCustomers),
     );
   }
 
@@ -396,7 +417,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       }
       return;
     }
-    
+
     // Set default amount to the invoice total if available
     final total = _calculateSubTotal();
     if (total > 0) {
@@ -419,11 +440,15 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Items table header
-                      const Text('Select Payment Method for Each Item:', 
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      const Text(
+                        'Select Payment Method for Each Item:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Items table with fixed height and scrollable content
                       Container(
                         constraints: BoxConstraints(
@@ -459,14 +484,22 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                       children: const [
                                         Padding(
                                           padding: EdgeInsets.all(12.0),
-                                          child: Text('Item', 
-                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                          child: Text(
+                                            'Item',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
                                         Padding(
                                           padding: EdgeInsets.all(12.0),
-                                          child: Text('Payment Method', 
-                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                          child: Text(
+                                            'Payment Method',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -476,45 +509,74 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                       final item = _rows[index];
                                       return TableRow(
                                         decoration: BoxDecoration(
-                                          color: index.isOdd ? Colors.grey.shade50 : Colors.white,
+                                          color: index.isOdd
+                                              ? Colors.grey.shade50
+                                              : Colors.white,
                                         ),
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.all(12.0),
                                             child: Text(
                                               '${item['name']} x${item['quantity']}',
-                                              style: const TextStyle(fontSize: 13),
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                              ),
                                             ),
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: DropdownButtonHideUnderline(
                                               child: DropdownButtonFormField<String>(
-                                                value: selectedPaymentMethods[index],
+                                                value:
+                                                    selectedPaymentMethods[index],
                                                 isExpanded: true,
                                                 decoration: InputDecoration(
-                                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  contentPadding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
                                                   border: OutlineInputBorder(
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    borderSide: BorderSide(color: Colors.grey.shade400),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                    borderSide: BorderSide(
+                                                      color:
+                                                          Colors.grey.shade400,
+                                                    ),
                                                   ),
                                                   filled: true,
                                                   fillColor: Colors.white,
                                                 ),
-                                                items: paymentMethods.map<DropdownMenuItem<String>>((method) {
-                                                  return DropdownMenuItem<String>(
-                                                    value: method['id'] as String,
-                                                    child: Text(
-                                                      method['name'] as String,
-                                                      style: const TextStyle(fontSize: 13),
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                  );
-                                                }).toList(),
+                                                items: paymentMethods
+                                                    .map<
+                                                      DropdownMenuItem<String>
+                                                    >((method) {
+                                                      return DropdownMenuItem<
+                                                        String
+                                                      >(
+                                                        value:
+                                                            method['id']
+                                                                as String,
+                                                        child: Text(
+                                                          method['name']
+                                                              as String,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 13,
+                                                              ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      );
+                                                    })
+                                                    .toList(),
                                                 onChanged: (String? value) {
                                                   if (value != null) {
                                                     setState(() {
-                                                      selectedPaymentMethods[index] = value;
+                                                      selectedPaymentMethods[index] =
+                                                          value;
                                                     });
                                                   }
                                                 },
@@ -528,9 +590,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                 ),
                               ),
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Payment amount
                       TextFormField(
                         controller: amountController,
@@ -550,12 +612,17 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Payment details (shown when a method requiring details is selected)
-                      if (selectedPaymentMethods.any((method) => 
-                          paymentMethods.firstWhere((m) => m['id'] == method)['requiresDetails'] == true))
+                      if (selectedPaymentMethods.any(
+                        (method) =>
+                            paymentMethods.firstWhere(
+                              (m) => m['id'] == method,
+                            )['requiresDetails'] ==
+                            true,
+                      ))
                         TextFormField(
                           controller: detailsController,
                           decoration: const InputDecoration(
@@ -587,10 +654,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         amountController.text,
                         detailsController.text,
                       );
-                      
+
                       // Clear the form after successful submission
                       _rows.clear();
-                      
+
                       // Show success message
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -601,7 +668,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           ),
                         );
                       }
-                      
+
                       Navigator.of(context).pop();
                     }
                   },
@@ -616,12 +683,16 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   }
 
   // Process payment when the confirm button is pressed
-  void _processPayment(List<String> paymentMethods, String amount, String details) {
+  void _processPayment(
+    List<String> paymentMethods,
+    String amount,
+    String details,
+  ) {
     debugPrint('Processing payment for ${_rows.length} items');
     for (int i = 0; i < _rows.length; i++) {
       debugPrint('Item ${i + 1}: ${_rows[i]['name']} - ${paymentMethods[i]}');
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment processed: Rs. $amount'),
@@ -683,14 +754,15 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 }
               });
             }
+
             void applyFilter(String query) {
               setDialogState(() {
                 hasQuery = query.isNotEmpty;
                 filteredItems = query.isEmpty
                     ? const []
                     : _mockItems
-                        .where((item) => matchesQuery(item, query))
-                        .toList();
+                          .where((item) => matchesQuery(item, query))
+                          .toList();
               });
             }
 
@@ -706,7 +778,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
               required TextEditingController controller,
               bool allowDecimal = false,
             }) async {
-              final tempController = TextEditingController(text: controller.text);
+              final tempController = TextEditingController(
+                text: controller.text,
+              );
               final result = await showDialog<String?>(
                 context: dialogContext,
                 builder: (context) {
@@ -719,9 +793,15 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           ? const TextInputType.numberWithOptions(decimal: true)
                           : TextInputType.number,
                       inputFormatters: allowDecimal
-                          ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))]
+                          ? [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]'),
+                              ),
+                            ]
                           : [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     actions: [
                       TextButton(
@@ -729,7 +809,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         child: const Text('Cancel'),
                       ),
                       FilledButton(
-                        onPressed: () => Navigator.of(context).pop(tempController.text.trim()),
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pop(tempController.text.trim()),
                         child: const Text('Set'),
                       ),
                     ],
@@ -746,10 +828,14 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 final value = result.isEmpty ? fallback : result;
                 if (allowDecimal) {
                   final parsed = double.tryParse(value);
-                  controller.text = parsed == null ? fallback : parsed.toString();
+                  controller.text = parsed == null
+                      ? fallback
+                      : parsed.toString();
                 } else {
                   final parsed = int.tryParse(value);
-                  controller.text = parsed == null ? fallback : parsed.toString();
+                  controller.text = parsed == null
+                      ? fallback
+                      : parsed.toString();
                 }
                 errorText = null;
               });
@@ -822,34 +908,56 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                 : ListView.separated(
                                     shrinkWrap: true,
                                     itemCount: filteredItems.length,
-                                    separatorBuilder: (_, __) => const Divider(height: 1),
+                                    separatorBuilder: (_, __) =>
+                                        const Divider(height: 1),
                                     itemBuilder: (context, index) {
                                       final item = filteredItems[index];
                                       final isSelected =
-                                          selectedItem != null && selectedItem!['code'] == item['code'];
+                                          selectedItem != null &&
+                                          selectedItem!['code'] == item['code'];
                                       return ListTile(
                                         selected: isSelected,
-                                        selectedTileColor: theme.colorScheme.primary.withOpacity(0.1),
+                                        selectedTileColor: theme
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.1),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        leading: CircleAvatar(
-                                          backgroundColor: theme.colorScheme.primaryContainer,
-                                          foregroundColor: theme.colorScheme.onPrimaryContainer,
-                                          child: Text(
-                                            (item['code'] as String).substring(0, 2),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
                                         ),
-                                        title: Text('${item['code']} • ${item['name']}'),
+                                        leading: CircleAvatar(
+                                          backgroundColor: theme
+                                              .colorScheme
+                                              .primaryContainer,
+                                          foregroundColor: theme
+                                              .colorScheme
+                                              .onPrimaryContainer,
+                                          child: Text(
+                                            (item['code'] as String).substring(
+                                              0,
+                                              2,
+                                            ),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          '${item['code']} • ${item['name']}',
+                                        ),
                                         subtitle: Text(
                                           'Rs ${(item['price'] as num).toStringAsFixed(2)} per ${item['uom']}',
                                         ),
                                         onTap: () {
                                           setDialogState(() {
                                             selectedItem = item;
-                                            searchController.text = item['name'] as String;
+                                            searchController.text =
+                                                item['name'] as String;
                                             filteredItems = _mockItems
-                                                .where((element) => matchesQuery(element, searchController.text))
+                                                .where(
+                                                  (element) => matchesQuery(
+                                                    element,
+                                                    searchController.text,
+                                                  ),
+                                                )
                                                 .toList();
                                             discountSummary = null;
                                             useAmountDiscount = false;
@@ -902,8 +1010,12 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                             onChanged: (value) {
                               setDialogState(() {
                                 useAmountDiscount = value ?? false;
-                                final quantity = int.tryParse(qtyController.text.trim());
-                                final freeQty = int.tryParse(freeQtyController.text.trim());
+                                final quantity = int.tryParse(
+                                  qtyController.text.trim(),
+                                );
+                                final freeQty = int.tryParse(
+                                  freeQtyController.text.trim(),
+                                );
                                 final discountValue = double.tryParse(
                                   discountController.text.trim().isEmpty
                                       ? '0'
@@ -915,20 +1027,24 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                     quantity > 0 &&
                                     freeQty != null &&
                                     freeQty >= 0) {
-                                  final unitPrice = (selectedItem!['price'] as num).toDouble();
+                                  final unitPrice =
+                                      (selectedItem!['price'] as num)
+                                          .toDouble();
                                   final totalPrice = unitPrice * quantity;
 
                                   if (discountValue != null) {
                                     double convertedValue;
                                     if (useAmountDiscount) {
-                                      convertedValue = totalPrice * (discountValue / 100);
+                                      convertedValue =
+                                          totalPrice * (discountValue / 100);
                                     } else {
                                       convertedValue = totalPrice == 0
                                           ? 0
                                           : (discountValue / totalPrice) * 100;
                                     }
 
-                                    discountController.text = convertedValue.isFinite
+                                    discountController.text =
+                                        convertedValue.isFinite
                                         ? convertedValue.toStringAsFixed(2)
                                         : '0';
                                   }
@@ -1044,10 +1160,14 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         child: pendingEntries.isEmpty
                             ? const Padding(
                                 padding: EdgeInsets.all(16),
-                                child: Center(child: Text('No items added yet')),
+                                child: Center(
+                                  child: Text('No items added yet'),
+                                ),
                               )
                             : ConstrainedBox(
-                                constraints: const BoxConstraints(maxHeight: 220),
+                                constraints: const BoxConstraints(
+                                  maxHeight: 220,
+                                ),
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.vertical,
                                   child: DataTable(
@@ -1055,10 +1175,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                     dataRowMinHeight: 44,
                                     columns: const [
                                       DataColumn(label: Text('Item')),
-                                      DataColumn(label: Text('Qty'), numeric: true),
-                                      DataColumn(label: Text('Free'), numeric: true),
-                                      DataColumn(label: Text('Disc')), 
-                                      DataColumn(label: Text('Net'), numeric: true),
+                                      DataColumn(
+                                        label: Text('Qty'),
+                                        numeric: true,
+                                      ),
+                                      DataColumn(
+                                        label: Text('Free'),
+                                        numeric: true,
+                                      ),
+                                      DataColumn(label: Text('Disc')),
+                                      DataColumn(
+                                        label: Text('Net'),
+                                        numeric: true,
+                                      ),
                                       DataColumn(label: Text('')),
                                     ],
                                     rows: pendingEntries
@@ -1067,21 +1196,47 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                         .map(
                                           (entry) => DataRow(
                                             cells: [
-                                              DataCell(Text(
-                                                _shortItemLabel(entry.value['item'] as String? ?? ''),
-                                                overflow: TextOverflow.ellipsis,
-                                              )),
-                                              DataCell(Text('${entry.value['qty']}')),
-                                              DataCell(Text('${entry.value['freeQty']}')),
-                                              DataCell(Text('${entry.value['discount']}')),
-                                              DataCell(Text('Rs ${(entry.value['price'] as num?)?.toStringAsFixed(2) ?? '0.00'}')),
+                                              DataCell(
+                                                Text(
+                                                  _shortItemLabel(
+                                                    entry.value['item']
+                                                            as String? ??
+                                                        '',
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text('${entry.value['qty']}'),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  '${entry.value['freeQty']}',
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  '${entry.value['discount']}',
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  'Rs ${(entry.value['price'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
+                                                ),
+                                              ),
                                               DataCell(
                                                 IconButton(
                                                   tooltip: 'Remove',
-                                                  icon: const Icon(Icons.delete_outline_rounded),
+                                                  icon: const Icon(
+                                                    Icons
+                                                        .delete_outline_rounded,
+                                                  ),
                                                   onPressed: () {
                                                     setDialogState(() {
-                                                      pendingEntries.removeAt(entry.key);
+                                                      pendingEntries.removeAt(
+                                                        entry.key,
+                                                      );
                                                     });
                                                   },
                                                 ),
@@ -1109,7 +1264,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         icon: const Icon(Icons.close_rounded),
                         style: IconButton.styleFrom(
                           foregroundColor: theme.colorScheme.error,
-                          backgroundColor: theme.colorScheme.error.withOpacity(0.12),
+                          backgroundColor: theme.colorScheme.error.withOpacity(
+                            0.12,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -1142,13 +1299,16 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         onPressed: () {
                           if (pendingEntries.isEmpty) {
                             setDialogState(() {
-                              errorText = 'Add at least one entry before confirming.';
+                              errorText =
+                                  'Add at least one entry before confirming.';
                             });
                             return;
                           }
 
                           Navigator.of(dialogContext).pop({
-                            'rows': pendingEntries.map((e) => Map<String, dynamic>.from(e)).toList(),
+                            'rows': pendingEntries
+                                .map((e) => Map<String, dynamic>.from(e))
+                                .toList(),
                             'confirm': true,
                           });
                         },
@@ -1189,7 +1349,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   }
 
   double _calculateSubTotal() {
-    return _rows.fold<double>(0, (sum, row) => sum + ((row['price'] as num?)?.toDouble() ?? 0.0));
+    return _rows.fold<double>(
+      0,
+      (sum, row) => sum + ((row['price'] as num?)?.toDouble() ?? 0.0),
+    );
   }
 
   String _shortItemLabel(String? label) {
@@ -1223,11 +1386,17 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
               const SizedBox(height: 4),
               Text('Quotation: $quotation', style: theme.textTheme.bodyMedium),
               const SizedBox(height: 4),
-              Text('Sales Order: $salesOrder', style: theme.textTheme.bodyMedium),
+              Text(
+                'Sales Order: $salesOrder',
+                style: theme.textTheme.bodyMedium,
+              ),
               const Divider(height: 24),
               Text('Items: ${_rows.length}', style: theme.textTheme.bodyMedium),
               const SizedBox(height: 4),
-              Text('Subtotal: Rs ${subtotal.toStringAsFixed(2)}', style: theme.textTheme.titleMedium),
+              Text(
+                'Subtotal: Rs ${subtotal.toStringAsFixed(2)}',
+                style: theme.textTheme.titleMedium,
+              ),
             ],
           ),
           actions: [
@@ -1296,7 +1465,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     if (data.isEmpty) {
       if (!mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No records available for selected customer')),
+        const SnackBar(
+          content: Text('No records available for selected customer'),
+        ),
       );
       return null;
     }
@@ -1311,9 +1482,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
             child: data.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: Text('No records available'),
-                    ),
+                    child: Center(child: Text('No records available')),
                   )
                 : ListView.separated(
                     shrinkWrap: true,
@@ -1346,7 +1515,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(<String, String>{}),
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(<String, String>{}),
               child: const Text('None'),
             ),
             TextButton(
@@ -1363,7 +1533,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     final discountCtrl = TextEditingController();
     String? selectedTax;
     bool isPercentageDiscount = true;
-    
+
     // List of available tax options
     final List<String> taxOptions = [
       'NBT 1 & VAT',
@@ -1392,12 +1562,18 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       Expanded(
                         child: TextField(
                           controller: discountCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           decoration: InputDecoration(
-                            labelText: 'Discount ${isPercentageDiscount ? '(%)' : '(Rs)'}',
+                            labelText:
+                                'Discount ${isPercentageDiscount ? '(%)' : '(Rs)'}',
                             border: const OutlineInputBorder(),
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 12,
+                            ),
                           ),
                         ),
                       ),
@@ -1405,19 +1581,29 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       Container(
                         margin: const EdgeInsets.only(top: 8),
                         decoration: BoxDecoration(
-                          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.5)),
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withOpacity(0.5),
+                          ),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: Text(
                                 '%',
                                 style: TextStyle(
-                                  color: isPercentageDiscount ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.5),
-                                  fontWeight: isPercentageDiscount ? FontWeight.bold : FontWeight.normal,
+                                  color: isPercentageDiscount
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.onSurface.withOpacity(
+                                          0.5,
+                                        ),
+                                  fontWeight: isPercentageDiscount
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                             ),
@@ -1429,12 +1615,20 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                               activeColor: theme.colorScheme.primary,
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: Text(
                                 'Rs',
                                 style: TextStyle(
-                                  color: !isPercentageDiscount ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.5),
-                                  fontWeight: !isPercentageDiscount ? FontWeight.bold : FontWeight.normal,
+                                  color: !isPercentageDiscount
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.onSurface.withOpacity(
+                                          0.5,
+                                        ),
+                                  fontWeight: !isPercentageDiscount
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                             ),
@@ -1451,7 +1645,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     decoration: const InputDecoration(
                       labelText: 'Select Tax Type',
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
                       isDense: true,
                     ),
                     items: taxOptions.map((String tax) {
@@ -1479,14 +1676,18 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     foregroundColor: theme.colorScheme.onPrimary,
                   ),
                   onPressed: () {
-                    final discount = discountCtrl.text.trim().isEmpty ? 0.0 : double.tryParse(discountCtrl.text.trim()) ?? 0.0;
+                    final discount = discountCtrl.text.trim().isEmpty
+                        ? 0.0
+                        : double.tryParse(discountCtrl.text.trim()) ?? 0.0;
                     final discountType = isPercentageDiscount ? '%' : 'Rs';
                     final taxType = selectedTax ?? 'No Tax Selected';
-                    
+
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Discount: $discount$discountType • Tax: $taxType'),
+                          content: Text(
+                            'Discount: $discount$discountType • Tax: $taxType',
+                          ),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -1520,7 +1721,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                   child: Consumer<CartProvider>(
                     builder: (context, cart, _) {
                       final customerName = cart.customerName;
-                      final displayLabel = _selectedCustomer?['name'] ?? customerName ?? 'Select Customer';
+                      final displayLabel =
+                          _selectedCustomer?['name'] ??
+                          customerName ??
+                          'Select Customer';
                       return ElevatedButton.icon(
                         onPressed: () async {
                           final selection = await _showCustomerDialog();
@@ -1546,7 +1750,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                            horizontal: 8,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -1634,14 +1841,17 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         ? null
                         : () async {
                             final selection = await _showMockDataDialog(
-                              title: 'Quotations for ${_selectedCustomer!['name']}',
+                              title:
+                                  'Quotations for ${_selectedCustomer!['name']}',
                               data: _filteredQuotations,
                               icon: Icons.description_rounded,
                             );
                             if (!mounted) return;
                             setState(() {
                               if (selection == null) return;
-                              _selectedQuotation = selection.isEmpty ? null : selection;
+                              _selectedQuotation = selection.isEmpty
+                                  ? null
+                                  : selection;
                             });
                           },
                     icon: const Icon(Icons.description_rounded),
@@ -1650,7 +1860,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 8,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -1668,14 +1881,17 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                         ? null
                         : () async {
                             final selection = await _showMockDataDialog(
-                              title: 'Sales Orders for ${_selectedCustomer!['name']}',
+                              title:
+                                  'Sales Orders for ${_selectedCustomer!['name']}',
                               data: _filteredSalesOrders,
                               icon: Icons.shopping_cart_rounded,
                             );
                             if (!mounted) return;
                             setState(() {
                               if (selection == null) return;
-                              _selectedSalesOrder = selection.isEmpty ? null : selection;
+                              _selectedSalesOrder = selection.isEmpty
+                                  ? null
+                                  : selection;
                             });
                           },
                     icon: const Icon(Icons.shopping_cart_rounded),
@@ -1684,7 +1900,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 8,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -1744,91 +1963,93 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       dataRowMinHeight: 48,
                       dataRowMaxHeight: 72,
                       columns: [
-                        const DataColumn(
-                          label: Text('Item'),
-                          numeric: false,
-                        ),
-                        const DataColumn(
-                          label: Text('Qty'),
-                          numeric: true,
-                        ),
-                        const DataColumn(
-                          label: Text('Free'),
-                          numeric: true,
-                        ),
+                        const DataColumn(label: Text('Item'), numeric: false),
+                        const DataColumn(label: Text('Qty'), numeric: true),
+                        const DataColumn(label: Text('Free'), numeric: true),
                         const DataColumn(
                           label: Text('Discount'),
                           numeric: true,
                         ),
+                        const DataColumn(label: Text('Price'), numeric: true),
                         const DataColumn(
-                          label: Text('Price'),
-                          numeric: true,
-                        ),
-                        const DataColumn(
-                          label: SizedBox(width: 60, child: Center(child: Text('Action'))),
+                          label: SizedBox(
+                            width: 60,
+                            child: Center(child: Text('Action')),
+                          ),
                           numeric: false,
                           tooltip: 'Remove item',
                         ),
                       ],
-                      rows: _rows.asMap().entries.map(
-                        (entry) {
-                          final index = entry.key;
-                          final r = entry.value;
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(
+                      rows: _rows.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final r = entry.value;
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              Text(
                                 _shortItemLabel(r['item'] as String?),
                                 overflow: TextOverflow.ellipsis,
-                              )),
-                              DataCell(Text(
-                                '${r['qty']}',
-                                textAlign: TextAlign.end,
-                              )),
-                              DataCell(Text(
+                              ),
+                            ),
+                            DataCell(
+                              Text('${r['qty']}', textAlign: TextAlign.end),
+                            ),
+                            DataCell(
+                              Text(
                                 '${r['freeQty'] ?? 0}',
                                 textAlign: TextAlign.end,
-                              )),
-                              DataCell(Text(
+                              ),
+                            ),
+                            DataCell(
+                              Text(
                                 '${r['discount']}',
                                 textAlign: TextAlign.end,
-                              )),
-                              DataCell(Text(
-                                '${r['price']}',
-                                textAlign: TextAlign.end,
-                              )),
-                              DataCell(
-                                Container(
-                                  width: 60,
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _rows.removeAt(index);
-                                      });
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Item removed'),
-                                          behavior: SnackBarBehavior.floating,
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.all(8),
-                                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                                      foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            DataCell(
+                              Text('${r['price']}', textAlign: TextAlign.end),
+                            ),
+                            DataCell(
+                              Container(
+                                width: 60,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _rows.removeAt(index);
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Item removed'),
+                                        behavior: SnackBarBehavior.floating,
+                                        duration: Duration(seconds: 2),
                                       ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.all(8),
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.errorContainer,
+                                    foregroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Icon(Icons.delete_outline_rounded, size: 20),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 20,
                                   ),
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ).toList(),
+                            ),
+                          ],
+                        );
+                      }).toList(),
                     );
                   },
                 ),
@@ -1902,383 +2123,6 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      const methods = <String>[
-                        'Cash',
-                        'Master Card',
-                        'Visa Card',
-                        'Amex Card',
-                        'Credit',
-                        'Cheque',
-                        'Third Party Cheque',
-                        'COD',
-                        'Direct Deposit',
-                        'Online',
-                      ];
-                      String? selected = methods.first;
-                      await showDialog<void>(
-                        context: context,
-                        builder: (context) {
-                          final theme = Theme.of(context);
-                          return StatefulBuilder(
-                            builder: (context, setLocalState) {
-                              final amountCtrl = TextEditingController();
-                              final cardNumberCtrl = TextEditingController();
-                              final chequeNumberCtrl = TextEditingController();
-                              final bankCtrl = TextEditingController();
-                              final branchCtrl = TextEditingController();
-                              final dateCtrl = TextEditingController();
-                              final codNumberCtrl = TextEditingController();
-                              final depositNumberCtrl = TextEditingController();
-                              DateTime? selectedDate;
-
-                              List<Widget> buildFields() {
-                                final widgets = <Widget>[
-                                  DropdownButtonFormField<String>(
-                                    value: selected,
-                                    items: methods
-                                        .map((m) => DropdownMenuItem<String>(
-                                              value: m,
-                                              child: Text(m),
-                                            ))
-                                        .toList(),
-                                    onChanged: (v) => setLocalState(() => selected = v),
-                                    decoration: const InputDecoration(
-                                      labelText: 'Payment Method',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
-                                    ),
-                                  ),
-                                ];
-
-                                void addGap() => widgets.add(const SizedBox(height: 12));
-
-                                switch (selected) {
-                                  case 'Cash':
-                                  case 'Visa Card':
-                                  case 'Amex Card':
-                                  case 'Credit':
-                                  case 'Online':
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: amountCtrl,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Amount',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    break;
-                                  case 'Master Card':
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: cardNumberCtrl,
-                                      keyboardType: TextInputType.number,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Master Card Number',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: amountCtrl,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Amount',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    break;
-                                  case 'Cheque':
-                                  case 'Third Party Cheque':
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: chequeNumberCtrl,
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                        LengthLimitingTextInputFormatter(6),
-                                      ],
-                                      decoration: const InputDecoration(
-                                        labelText: 'Cheque Number (6 digits)',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: bankCtrl,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Bank',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: branchCtrl,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Branch',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: dateCtrl,
-                                      readOnly: true,
-                                      onTap: () async {
-                                        final now = DateTime.now();
-                                        final picked = await showDatePicker(
-                                          context: context,
-                                          initialDate: selectedDate ?? now,
-                                          firstDate: DateTime(now.year - 5),
-                                          lastDate: DateTime(now.year + 5),
-                                        );
-                                        if (picked != null) {
-                                          setLocalState(() {
-                                            selectedDate = picked;
-                                            dateCtrl.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-                                          });
-                                        }
-                                      },
-                                      decoration: const InputDecoration(
-                                        labelText: 'Date',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                        suffixIcon: Icon(Icons.calendar_today_rounded),
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: amountCtrl,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Amount',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    break;
-                                  case 'COD':
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: amountCtrl,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Amount',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: codNumberCtrl,
-                                      decoration: const InputDecoration(
-                                        labelText: 'COD Number',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    break;
-                                  case 'Direct Deposit':
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: depositNumberCtrl,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Deposit Number',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: bankCtrl,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Bank',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: branchCtrl,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Branch',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    addGap();
-                                    widgets.add(TextField(
-                                      controller: amountCtrl,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Amount',
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
-                                      ),
-                                    ));
-                                    break;
-                                }
-
-                                return widgets;
-                              }
-
-                              bool validate() {
-                                double? amountOrNull() {
-                                  final a = double.tryParse(amountCtrl.text.trim());
-                                  return a;
-                                }
-
-                                switch (selected) {
-                                  case 'Cash':
-                                  case 'Visa Card':
-                                  case 'Amex Card':
-                                  case 'Credit':
-                                  case 'Online':
-                                    final a = amountOrNull();
-                                    if (a == null || a <= 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter a valid amount')),
-                                      );
-                                      return false;
-                                    }
-                                    return true;
-                                  case 'Master Card':
-                                    if (cardNumberCtrl.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter Master Card number')),
-                                      );
-                                      return false;
-                                    }
-                                    final a = amountOrNull();
-                                    if (a == null || a <= 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter a valid amount')),
-                                      );
-                                      return false;
-                                    }
-                                    return true;
-                                  case 'Cheque':
-                                  case 'Third Party Cheque':
-                                    final num = chequeNumberCtrl.text.trim();
-                                    if (num.length != 6 || int.tryParse(num) == null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Cheque number must be exactly 6 digits')),
-                                      );
-                                      return false;
-                                    }
-                                    if (bankCtrl.text.trim().isEmpty || branchCtrl.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter bank and branch')),
-                                      );
-                                      return false;
-                                    }
-                                    if (dateCtrl.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Select cheque date')),
-                                      );
-                                      return false;
-                                    }
-                                    final a = amountOrNull();
-                                    if (a == null || a <= 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter a valid amount')),
-                                      );
-                                      return false;
-                                    }
-                                    return true;
-                                  case 'COD':
-                                    if (codNumberCtrl.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter COD number')),
-                                      );
-                                      return false;
-                                    }
-                                    final a = amountOrNull();
-                                    if (a == null || a <= 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter a valid amount')),
-                                      );
-                                      return false;
-                                    }
-                                    return true;
-                                  case 'Direct Deposit':
-                                    if (depositNumberCtrl.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter deposit number')),
-                                      );
-                                      return false;
-                                    }
-                                    if (bankCtrl.text.trim().isEmpty || branchCtrl.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter bank and branch')),
-                                      );
-                                      return false;
-                                    }
-                                    final a = amountOrNull();
-                                    if (a == null || a <= 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Enter a valid amount')),
-                                      );
-                                      return false;
-                                    }
-                                    return true;
-                                  default:
-                                    return true;
-                                }
-                              }
-
-                              return AlertDialog(
-                                title: const Text('Post Invoice'),
-                                content: SizedBox(
-                                  width: 380,
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: buildFields(),
-                                    ),
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.primary,
-                                      foregroundColor: theme.colorScheme.onPrimary,
-                                    ),
-                                    onPressed: _openPostInvoiceDialog,
-                                    child: const Text('Post'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                    child: ElevatedButton(
-                      onPressed: _openPostInvoiceDialog,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Post'),
                     ),
                   ),
                 ),
