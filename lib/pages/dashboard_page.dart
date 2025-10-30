@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
@@ -66,6 +66,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   ),
                   textAlign: TextAlign.center,
                 ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ],
             ),
           ),
@@ -93,13 +104,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           builder: (context, constraints) {
             final width = constraints.maxWidth;
             final crossAxisCount = width >= 1100 ? 4 : width >= 800 ? 3 : 2;
-            final aspect = width >= 1100 ? 1.2 : width >= 800 ? 1.15 : 1.1;
+            const spacing = 16.0;
+            final availableWidth = width - spacing * (crossAxisCount - 1);
+            final itemWidth = availableWidth / crossAxisCount;
+            final targetHeight = width >= 1100
+                ? 260.0
+                : width >= 800
+                    ? 240.0
+                    : 220.0;
+            final aspect = itemWidth / targetHeight;
             return GridView.builder(
               padding: const EdgeInsets.only(bottom: 20),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
                 childAspectRatio: aspect,
               ),
               itemCount: 8,
