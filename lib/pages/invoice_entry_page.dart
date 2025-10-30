@@ -1704,6 +1704,64 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     );
   }
 
+  void _showPaymentMethodDialog(BuildContext context) {
+    String? selectedMethod;
+    final paymentMethods = [
+      'Cash',
+      'Master Card',
+      'Visa Card', 
+      'Amex Card',
+      'Credit',
+      'Cheque',
+      'Third Party Cheque',
+      'COD',
+      'Direct Deposit',
+      'Online'
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Payment Method'),
+        content: DropdownButtonFormField<String>(
+          value: selectedMethod,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          items: paymentMethods
+              .map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            selectedMethod = newValue;
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (selectedMethod != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Posted with $selectedMethod')),
+                );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1823,10 +1881,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
               icon: const Icon(Icons.sell_rounded),
               label: Text('Sales Type: $_salesType'),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 14,
-                  horizontal: 12,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -2119,6 +2174,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     },
                     child: const Text('Clear'),
                     style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _showPaymentMethodDialog(context),
+                    child: const Text('Post'),
+                    style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
