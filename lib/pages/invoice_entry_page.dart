@@ -187,6 +187,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   Map<String, String>? _selectedSalesOrder;
   Map<String, String>? _selectedCustomer;
 
+  double _invoiceDiscount = 0.0;
+  bool _isPercentageDiscount = true;
+  String? _selectedTax;
+
   static const List<Map<String, String>> _mockQuotations = [
     {
       'id': 'QT-1001',
@@ -399,11 +403,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
         'requiresDetails': true,
       },
       {'id': 'cod', 'name': 'COD', 'requiresDetails': false},
-      {
-        'id': 'direct_deposit',
-        'name': 'Direct Deposit',
-        'requiresDetails': true,
-      },
+      {'id': 'direct_deposit', 'name': 'Direct Deposit', 'requiresDetails': true},
       {'id': 'online', 'name': 'Online', 'requiresDetails': true},
     ];
 
@@ -428,7 +428,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       return;
     }
 
-    final total = _calculateSubTotal();
+    final total = _calculateTotal();
     amountController.text = total.toStringAsFixed(2);
 
     await showDialog<void>(
@@ -1270,6 +1270,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     );
   }
 
+  double _calculateTotal() {
+    double subtotal = _calculateSubTotal();
+    double discountAmount = _isPercentageDiscount
+        ? subtotal * (_invoiceDiscount / 100)
+        : _invoiceDiscount;
+
+    // Apply discount (but don't go below 0)
+    double discountedTotal = (subtotal - discountAmount).clamp(0, double.infinity);
+
+    // TODO: Add tax calculation based on _selectedTax
+    return discountedTotal;
+  }
+
   String _shortItemLabel(String? label) {
     if (label == null || label.isEmpty) return '';
     final parts = label.split('•');
@@ -1310,6 +1323,16 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
               const SizedBox(height: 4),
               Text(
                 'Subtotal: Rs ${subtotal.toStringAsFixed(2)}',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Discount: ${_isPercentageDiscount ? '%' : 'Rs'} ${_invoiceDiscount.toStringAsFixed(2)}',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Total: Rs ${_calculateTotal().toStringAsFixed(2)}',
                 style: theme.textTheme.titleMedium,
               ),
             ],
@@ -1445,7 +1468,6 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   }
 
   Future<void> _openDiscountTaxesDialog() async {
-    // Check if customer is selected
     if (_selectedCustomer == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1459,17 +1481,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       return;
     }
 
-    final discountCtrl = TextEditingController();
-    String? selectedTax;
-    bool isPercentageDiscount = true;
-
-    final List<String> taxOptions = [
-      'NBT 1 & VAT',
-      'NBT 2 & VAT',
-      'VAT',
-      'NBT, VAT',
-      'NBT 1, VAT',
-    ];
+    final discountCtrl = TextEditingController(text: _invoiceDiscount.toString());
 
     await showDialog<void>(
       context: context,
@@ -1494,7 +1506,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           ),
                           decoration: InputDecoration(
                             labelText:
-                                'Discount ${isPercentageDiscount ? '(%)' : '(Rs)'}',
+                                'Discount ${_isPercentageDiscount ? '(%)' : '(Rs)'}',
                             border: const OutlineInputBorder(),
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
@@ -1523,21 +1535,21 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                               child: Text(
                                 '%',
                                 style: TextStyle(
-                                  color: isPercentageDiscount
+                                  color: _isPercentageDiscount
                                       ? theme.colorScheme.primary
                                       : theme.colorScheme.onSurface.withOpacity(
                                           0.5,
                                         ),
-                                  fontWeight: isPercentageDiscount
+                                  fontWeight: _isPercentageDiscount
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                 ),
                               ),
                             ),
                             Switch.adaptive(
-                              value: isPercentageDiscount,
+                              value: _isPercentageDiscount,
                               onChanged: (value) {
-                                setState(() => isPercentageDiscount = value);
+                                setState(() => _isPercentageDiscount = value);
                               },
                               activeColor: theme.colorScheme.primary,
                             ),
@@ -1548,12 +1560,12 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                               child: Text(
                                 'Rs',
                                 style: TextStyle(
-                                  color: !isPercentageDiscount
+                                  color: !_isPercentageDiscount
                                       ? theme.colorScheme.primary
                                       : theme.colorScheme.onSurface.withOpacity(
                                           0.5,
                                         ),
-                                  fontWeight: !isPercentageDiscount
+                                  fontWeight: !_isPercentageDiscount
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                 ),
@@ -1567,7 +1579,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedTax,
+                    value: _selectedTax,
                     decoration: const InputDecoration(
                       labelText: 'Select Tax Type',
                       border: OutlineInputBorder(),
@@ -1577,7 +1589,13 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       ),
                       isDense: true,
                     ),
-                    items: taxOptions.map((String tax) {
+                    items: [
+                      'NBT 1 & VAT',
+                      'NBT 2 & VAT',
+                      'VAT',
+                      'NBT, VAT',
+                      'NBT 1, VAT',
+                    ].map((String tax) {
                       return DropdownMenuItem<String>(
                         value: tax,
                         child: Text(tax),
@@ -1585,7 +1603,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     }).toList(),
                     onChanged: (String? value) {
                       setState(() {
-                        selectedTax = value;
+                        _selectedTax = value;
                       });
                     },
                   ),
@@ -1605,14 +1623,18 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     final discount = discountCtrl.text.trim().isEmpty
                         ? 0.0
                         : double.tryParse(discountCtrl.text.trim()) ?? 0.0;
-                    final discountType = isPercentageDiscount ? '%' : 'Rs';
-                    final taxType = selectedTax ?? 'No Tax Selected';
+
+                    setState(() {
+                      _invoiceDiscount = discount;
+                      _isPercentageDiscount = _isPercentageDiscount;
+                      _selectedTax = _selectedTax;
+                    });
 
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Discount: $discount$discountType • Tax: $taxType',
+                            'Applied: Discount ${_isPercentageDiscount ? '%' : 'Rs'} $_invoiceDiscount • Tax: ${_selectedTax ?? 'None'}',
                           ),
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -1620,7 +1642,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       Navigator.of(context).pop();
                     }
                   },
-                  child: const Text('Save'),
+                  child: const Text('Apply'),
                 ),
               ],
             );
@@ -1920,9 +1942,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(children: [ 
-              ],
-            ),
+            Row(children: []),
             const SizedBox(height: 8),
             Expanded(
               child: Card(
@@ -1932,98 +1952,139 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 clipBehavior: Clip.antiAlias,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    return DataTable(
-                      columnSpacing: 12,
-                      dataRowMinHeight: 48,
-                      dataRowMaxHeight: 72,
-                      columns: [
-                        const DataColumn(label: Text('Item'), numeric: false),
-                        const DataColumn(label: Text('Qty'), numeric: true),
-                        const DataColumn(label: Text('Free'), numeric: true),
-                        const DataColumn(
-                          label: Text('Discount'),
-                          numeric: true,
-                        ),
-                        const DataColumn(label: Text('Price'), numeric: true),
-                        const DataColumn(
-                          label: SizedBox(
-                            width: 60,
-                            child: Center(child: Text('Action')),
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columnSpacing: 12,
+                        dataRowMinHeight: 48,
+                        dataRowMaxHeight: 72,
+                        columns: [
+                          const DataColumn(label: Text('Item'), numeric: false),
+                          const DataColumn(label: Text('Qty'), numeric: true),
+                          const DataColumn(label: Text('Free'), numeric: true),
+                          const DataColumn(
+                            label: Text('Discount'),
+                            numeric: true,
                           ),
-                          numeric: false,
-                          tooltip: 'Remove item',
-                        ),
-                      ],
-                      rows: _rows.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final r = entry.value;
-                        return DataRow(
-                          cells: [
-                            DataCell(
-                              Text(
-                                _shortItemLabel(r['item'] as String?),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                          const DataColumn(label: Text('Price'), numeric: true),
+                          const DataColumn(
+                            label: Text('Subtotal'),
+                            numeric: true,
+                          ),
+                          const DataColumn(
+                            label: Text('Discount'),
+                            numeric: true,
+                          ),
+                          const DataColumn(
+                            label: Text('Total'),
+                            numeric: true,
+                          ),
+                          const DataColumn(
+                            label: SizedBox(
+                              width: 60,
+                              child: Center(child: Text('Action')),
                             ),
-                            DataCell(
-                              Text('${r['qty']}', textAlign: TextAlign.end),
-                            ),
-                            DataCell(
-                              Text(
-                                '${r['freeQty'] ?? 0}',
-                                textAlign: TextAlign.end,
-                              ),
-                            ),
-                            DataCell(
-                              Text(
-                                '${r['discount']}',
-                                textAlign: TextAlign.end,
-                              ),
-                            ),
-                            DataCell(
-                              Text('${r['price']}', textAlign: TextAlign.end),
-                            ),
-                            DataCell(
-                              Container(
-                                width: 60,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
+                            numeric: false,
+                            tooltip: 'Remove item',
+                          ),
+                        ],
+                        rows: _rows.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final r = entry.value;
+                          final price = (r['price'] as num?)?.toDouble() ?? 0.0;
+                          final qty = (r['qty'] as num?)?.toInt() ?? 1;
+                          final discount = (r['discount'] as String?)?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0';
+                          
+                          final subtotal = price * qty;
+                          final discountValue = double.tryParse(discount) ?? 0.0;
+                          final total = subtotal - discountValue;
+                          
+                          return DataRow(
+                            cells: [
+                              DataCell(
+                                Text(
+                                  _shortItemLabel(r['item'] as String?),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _rows.removeAt(index);
-                                    });
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Item removed'),
-                                        behavior: SnackBarBehavior.floating,
-                                        duration: Duration(seconds: 2),
+                              ),
+                              DataCell(
+                                Text('${r['qty']}', textAlign: TextAlign.end),
+                              ),
+                              DataCell(
+                                Text(
+                                  '${r['freeQty'] ?? 0}',
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  '${r['discount']}',
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              DataCell(
+                                Text('${r['price']}', textAlign: TextAlign.end),
+                              ),
+                              DataCell(
+                                Text(
+                                  'Rs ${subtotal.toStringAsFixed(2)}',
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  'Rs ${discountValue.toStringAsFixed(2)}',
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  'Rs ${total.toStringAsFixed(2)}',
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              DataCell(
+                                Container(
+                                  width: 60,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _rows.removeAt(index);
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Item removed'),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.all(8),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.errorContainer,
+                                      foregroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.all(8),
-                                    backgroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.errorContainer,
-                                    foregroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.onErrorContainer,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 20,
                                     ),
                                   ),
-                                  child: const Icon(
-                                    Icons.delete_outline_rounded,
-                                    size: 20,
-                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     );
                   },
                 ),
