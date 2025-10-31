@@ -13,6 +13,7 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
   late AnimationController _animationController;
@@ -22,6 +23,10 @@ class _LandingPageState extends State<LandingPage>
   late Animation<double> _gradientAnimation;
 
   bool _obscurePassword = true;
+
+  // Mock credentials
+  static const mockUsername = 'maleesha';
+  static const mockPassword = 'maleesha123';
 
   @override
   void initState() {
@@ -59,6 +64,7 @@ class _LandingPageState extends State<LandingPage>
   void dispose() {
     _animationController.dispose();
     _gradientController.dispose();
+    usernameController.dispose();
     passwordController.dispose();
     super.dispose();
   }
@@ -66,47 +72,25 @@ class _LandingPageState extends State<LandingPage>
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Validate mock credentials
+    if (usernameController.text != mockUsername || 
+        passwordController.text != mockPassword) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid username or password'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final auth = context.read<AuthProvider>();
     try {
-      // Login with password only
-      final success = await auth.loginWithPassword(passwordController.text);
-
-      if (!mounted) return;
-
-      if (success) {
-        // Check if salesman is active
-        if (auth.isCurrentSalesmanActive) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        } else {
-          // Show error for inactive salesmen
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Account is suspended or blacklisted. Please contact administrator.',
-              ),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-          auth.logout();
-        }
-      } else {
-        // Show error for invalid credentials
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: ${auth.errorMessage ?? 'Invalid credentials'}',
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+      // Mock successful login
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
       }
     } catch (e) {
       if (mounted) {
@@ -115,9 +99,6 @@ class _LandingPageState extends State<LandingPage>
             content: Text('Login failed: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
           ),
         );
       }
@@ -304,7 +285,7 @@ class _LandingPageState extends State<LandingPage>
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Enter your password to continue',
+                                          'Enter your credentials to continue',
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
                                                 color: Colors.white.withOpacity(
@@ -314,27 +295,67 @@ class _LandingPageState extends State<LandingPage>
                                           textAlign: TextAlign.center,
                                         ),
                                         const SizedBox(height: 32),
+                                        // Username Field
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.9),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: const Color(0xFFE2E8F0),
+                                            ),
+                                          ),
+                                          margin: const EdgeInsets.only(bottom: 16),
+                                          child: TextFormField(
+                                            controller: usernameController,
+                                            style: const TextStyle(
+                                              color: Color(0xFF1E293B),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            decoration: InputDecoration(
+                                              labelText: 'Username',
+                                              hintText: 'Enter your username',
+                                              hintStyle: const TextStyle(
+                                                color: Color(0xFF64748B),
+                                                fontSize: 16,
+                                              ),
+                                              labelStyle: const TextStyle(
+                                                color: Color(0xFF475569),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              prefixIcon: Icon(
+                                                Icons.person_outline_rounded,
+                                                color: const Color(0xFF6366F1),
+                                                size: 22,
+                                              ),
+                                              border: InputBorder.none,
+                                              contentPadding: const EdgeInsets.symmetric(
+                                                horizontal: 20,
+                                                vertical: 20,
+                                              ),
+                                            ),
+                                            validator: (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Please enter your username';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
                                         // Password Field with modern styling
                                         Container(
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(
-                                              0.9,
-                                            ), // More opaque for better contrast
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
+                                            color: Colors.white.withOpacity(0.9),
+                                            borderRadius: BorderRadius.circular(20),
                                             border: Border.all(
-                                              color: const Color(
-                                                0xFFE2E8F0,
-                                              ), // Light border for visibility
+                                              color: const Color(0xFFE2E8F0),
                                             ),
                                           ),
                                           child: TextFormField(
                                             controller: passwordController,
                                             style: const TextStyle(
-                                              color: Color(
-                                                0xFF1E293B,
-                                              ), // Dark text for visibility
+                                              color: Color(0xFF1E293B),
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -342,23 +363,17 @@ class _LandingPageState extends State<LandingPage>
                                               labelText: 'Password',
                                               hintText: 'Enter your password',
                                               hintStyle: const TextStyle(
-                                                color: Color(
-                                                  0xFF64748B,
-                                                ), // Dark gray for visibility
+                                                color: Color(0xFF64748B),
                                                 fontSize: 16,
                                               ),
                                               labelStyle: const TextStyle(
-                                                color: Color(
-                                                  0xFF475569,
-                                                ), // Darker gray for visibility
+                                                color: Color(0xFF475569),
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                               prefixIcon: Icon(
                                                 Icons.lock_outline_rounded,
-                                                color: const Color(
-                                                  0xFF6366F1,
-                                                ), // Primary color for visibility
+                                                color: const Color(0xFF6366F1),
                                                 size: 22,
                                               ),
                                               suffixIcon: IconButton(
@@ -370,7 +385,7 @@ class _LandingPageState extends State<LandingPage>
                                                             .visibility_off_outlined,
                                                   color: const Color(
                                                     0xFF64748B,
-                                                  ), // Dark gray for visibility
+                                                  ),
                                                   size: 22,
                                                 ),
                                                 onPressed: () => setState(
