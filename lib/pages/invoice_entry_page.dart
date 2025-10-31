@@ -397,23 +397,18 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       {'id': 'amex_card', 'name': 'Amex Card', 'requiresDetails': true},
       {'id': 'credit', 'name': 'Credit', 'requiresDetails': true},
       {'id': 'cheque', 'name': 'Cheque', 'requiresDetails': true},
-      {
-        'id': 'third_party_cheque',
-        'name': 'Third Party Cheque',
-        'requiresDetails': true,
-      },
+      {'id': 'third_party_cheque', 'name': 'Third Party Cheque', 'requiresDetails': true},
       {'id': 'cod', 'name': 'COD', 'requiresDetails': false},
       {'id': 'direct_deposit', 'name': 'Direct Deposit', 'requiresDetails': true},
       {'id': 'online', 'name': 'Online', 'requiresDetails': true},
     ];
 
-    final List<String> selectedPaymentMethods = List<String>.filled(
-      _rows.length,
-      paymentMethods.first['id'] as String,
-    );
+    final List<String?> selectedPaymentMethods = List.filled(_rows.length, null);
+    final List<TextEditingController> detailControllers = 
+        List.generate(_rows.length, (_) => TextEditingController());
 
     final amountController = TextEditingController();
-    final detailsController = TextEditingController();
+    final generalDetailsController = TextEditingController();
 
     if (_rows.isEmpty) {
       if (mounted) {
@@ -438,145 +433,166 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Post Invoice'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              insetPadding: const EdgeInsets.all(20),
               content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Select Payment Method for Each Item:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.4,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SingleChildScrollView(
-                        child: Table(
-                          columnWidths: const {
-                            0: FlexColumnWidth(2), // Item column
-                            1: FlexColumnWidth(3), // Payment Method column
-                          },
-                          border: TableBorder.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
-                          children: [
-                            TableRow(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: null,
+                              decoration: const InputDecoration(
+                                labelText: 'Apply Payment Method to All',
+                                border: OutlineInputBorder(),
+                                isDense: true,
                               ),
-                              children: const [
-                                Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: Text(
-                                    'Item',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: Text(
-                                    'Payment Method',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              items: paymentMethods.map((method) {
+                                return DropdownMenuItem<String>(
+                                  value: method['id'],
+                                  child: Text(method['name']),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    for (int i = 0; i < _rows.length; i++) {
+                                      selectedPaymentMethods[i] = value;
+                                    }
+                                  });
+                                }
+                              },
                             ),
-                            ...List.generate(_rows.length, (index) {
-                              final item = _rows[index];
-                              return TableRow(
-                                decoration: BoxDecoration(
-                                  color: index.isOdd
-                                      ? Colors.grey.shade50
-                                      : Colors.white,
-                                ),
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Text(
-                                      '${item['name']} x${item['quantity']}',
-                                    ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.check),
+                            tooltip: 'Apply to all items',
+                            onPressed: () {
+                              final method = selectedPaymentMethods.firstWhere(
+                                (m) => m != null,
+                                orElse: () => null,
+                              );
+                              if (method != null) {
+                                setState(() {
+                                  for (int i = 0; i < _rows.length; i++) {
+                                    selectedPaymentMethods[i] = method;
+                                  }
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Invoice Items:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.4,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _rows.length,
+                          itemBuilder: (context, index) {
+                            final item = _rows[index];
+                            final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+                            final qty = (item['qty'] as num?)?.toInt() ?? 1;
+                            final discount = (item['discount'] as String?)?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0';
+                            final discountValue = double.tryParse(discount) ?? 0.0;
+                            final subtotal = price * qty;
+                            
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ListTile(
+                                  title: Text(
+                                    '${_shortItemLabel(item['item'] as String?)} x$qty',
+                                    style: const TextStyle(fontSize: 14),
                                   ),
+                                  subtitle: Text(
+                                    'Rs ${price.toStringAsFixed(2)} - Rs ${discountValue.toStringAsFixed(2)} = Rs ${(subtotal - discountValue).toStringAsFixed(2)}',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  dense: true,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: DropdownButtonFormField<String>(
+                                    value: selectedPaymentMethods[index],
+                                    decoration: const InputDecoration(
+                                      labelText: 'Payment Method',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                    items: paymentMethods.map((method) {
+                                      return DropdownMenuItem<String>(
+                                        value: method['id'],
+                                        child: Text(method['name']),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedPaymentMethods[index] = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                if (selectedPaymentMethods[index] != null && 
+                                    paymentMethods.firstWhere(
+                                      (m) => m['id'] == selectedPaymentMethods[index],
+                                    )['requiresDetails'])
                                   Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButtonFormField<String>(
-                                        value: selectedPaymentMethods[index],
-                                        isExpanded: true,
-                                        decoration: InputDecoration(
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
-                                        ),
-                                        items: paymentMethods
-                                            .map<DropdownMenuItem<String>>((
-                                              method,
-                                            ) {
-                                              return DropdownMenuItem<String>(
-                                                value: method['id'],
-                                                child: Text(method['name']),
-                                              );
-                                            })
-                                            .toList(),
-                                        onChanged: (String? value) {
-                                          if (value != null) {
-                                            setState(() {
-                                              selectedPaymentMethods[index] =
-                                                  value;
-                                            });
-                                          }
-                                        },
+                                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                                    child: TextField(
+                                      controller: detailControllers[index],
+                                      decoration: const InputDecoration(
+                                        labelText: 'Payment Details',
+                                        border: OutlineInputBorder(),
+                                        isDense: true,
                                       ),
                                     ),
                                   ),
-                                ],
-                              );
-                            }),
-                          ],
+                                const Divider(),
+                              ],
+                            );
+                          },
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: amountController,
-                      decoration: const InputDecoration(
-                        labelText: 'Total Amount',
-                        border: OutlineInputBorder(),
-                        prefixText: 'Rs. ',
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: amountController,
+                        decoration: const InputDecoration(
+                          labelText: 'Total Amount',
+                          border: OutlineInputBorder(),
+                          prefixText: 'Rs. ',
+                        ),
+                        keyboardType: TextInputType.number,
                       ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: detailsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Payment Details',
-                        border: OutlineInputBorder(),
-                        hintText: 'Enter payment reference or details',
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: generalDetailsController,
+                        decoration: const InputDecoration(
+                          labelText: 'General Remarks',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 2,
                       ),
-                      maxLines: 2,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -586,6 +602,17 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    // Validate all items have payment methods
+                    if (selectedPaymentMethods.any((method) => method == null)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please select payment methods for all items'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Invoice posted successfully!'),
@@ -593,7 +620,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     );
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Confirm'),
+                  child: const Text('Post Invoice'),
                 ),
               ],
             );
@@ -823,8 +850,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                 : ListView.separated(
                                     shrinkWrap: true,
                                     itemCount: filteredItems.length,
-                                    separatorBuilder: (_, __) =>
-                                        const Divider(height: 1),
+                                    separatorBuilder: (_, __) => const Divider(height: 1),
                                     itemBuilder: (context, index) {
                                       final item = filteredItems[index];
                                       final isSelected =
@@ -1453,8 +1479,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext).pop(<String, String>{}),
+              onPressed: () => Navigator.of(dialogContext).pop(<String, String>{}),
               child: const Text('None'),
             ),
             TextButton(
