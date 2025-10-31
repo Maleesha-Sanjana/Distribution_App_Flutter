@@ -386,25 +386,35 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   }
 
   Future<void> _openPostInvoiceDialog() async {
-    // Define payment methods as a list of maps with proper typing
     final List<Map<String, dynamic>> paymentMethods = [
       {'id': 'cash', 'name': 'Cash', 'requiresDetails': false},
+      {'id': 'master_card', 'name': 'Master Card', 'requiresDetails': true},
+      {'id': 'visa_card', 'name': 'Visa Card', 'requiresDetails': true},
+      {'id': 'amex_card', 'name': 'Amex Card', 'requiresDetails': true},
+      {'id': 'credit', 'name': 'Credit', 'requiresDetails': true},
       {'id': 'cheque', 'name': 'Cheque', 'requiresDetails': true},
-      {'id': 'card', 'name': 'Credit/Debit Card', 'requiresDetails': true},
-      {'id': 'bank_transfer', 'name': 'Bank Transfer', 'requiresDetails': true},
+      {
+        'id': 'third_party_cheque',
+        'name': 'Third Party Cheque',
+        'requiresDetails': true,
+      },
+      {'id': 'cod', 'name': 'COD', 'requiresDetails': false},
+      {
+        'id': 'direct_deposit',
+        'name': 'Direct Deposit',
+        'requiresDetails': true,
+      },
+      {'id': 'online', 'name': 'Online', 'requiresDetails': true},
     ];
 
-    // Initialize selected payment method for each row with proper typing
     final List<String> selectedPaymentMethods = List<String>.filled(
       _rows.length,
-      paymentMethods.first['id'] as String, // Default to first payment method
+      paymentMethods.first['id'] as String,
     );
 
     final amountController = TextEditingController();
     final detailsController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
 
-    // Check if there are any items to display
     if (_rows.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -418,11 +428,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       return;
     }
 
-    // Set default amount to the invoice total if available
     final total = _calculateSubTotal();
-    if (total > 0) {
-      amountController.text = total.toStringAsFixed(2);
-    }
+    amountController.text = total.toStringAsFixed(2);
 
     await showDialog<void>(
       context: context,
@@ -432,247 +439,161 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
             return AlertDialog(
               title: const Text('Post Invoice'),
               content: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Items table header
-                      const Text(
-                        'Select Payment Method for Each Item:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Select Payment Method for Each Item:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.4,
                       ),
-                      const SizedBox(height: 12),
-
-                      // Items table with fixed height and scrollable content
-                      Container(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.4,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: _rows.isEmpty
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Text('No items in the invoice'),
-                                ),
-                              )
-                            : SingleChildScrollView(
-                                child: Table(
-                                  columnWidths: const {
-                                    0: FlexColumnWidth(2),
-                                    1: FlexColumnWidth(3),
-                                  },
-                                  border: TableBorder.all(
-                                    color: Colors.grey.shade300,
-                                    width: 1,
-                                  ),
-                                  children: [
-                                    // Table header
-                                    TableRow(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                      ),
-                                      children: const [
-                                        Padding(
-                                          padding: EdgeInsets.all(12.0),
-                                          child: Text(
-                                            'Item',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.all(12.0),
-                                          child: Text(
-                                            'Payment Method',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    // Table rows
-                                    ...List.generate(_rows.length, (index) {
-                                      final item = _rows[index];
-                                      return TableRow(
-                                        decoration: BoxDecoration(
-                                          color: index.isOdd
-                                              ? Colors.grey.shade50
-                                              : Colors.white,
-                                        ),
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Text(
-                                              '${item['name']} x${item['quantity']}',
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: DropdownButtonHideUnderline(
-                                              child: DropdownButtonFormField<String>(
-                                                value:
-                                                    selectedPaymentMethods[index],
-                                                isExpanded: true,
-                                                decoration: InputDecoration(
-                                                  contentPadding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4,
-                                                      ),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          4,
-                                                        ),
-                                                    borderSide: BorderSide(
-                                                      color:
-                                                          Colors.grey.shade400,
-                                                    ),
-                                                  ),
-                                                  filled: true,
-                                                  fillColor: Colors.white,
-                                                ),
-                                                items: paymentMethods
-                                                    .map<
-                                                      DropdownMenuItem<String>
-                                                    >((method) {
-                                                      return DropdownMenuItem<
-                                                        String
-                                                      >(
-                                                        value:
-                                                            method['id']
-                                                                as String,
-                                                        child: Text(
-                                                          method['name']
-                                                              as String,
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 13,
-                                                              ),
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      );
-                                                    })
-                                                    .toList(),
-                                                onChanged: (String? value) {
-                                                  if (value != null) {
-                                                    setState(() {
-                                                      selectedPaymentMethods[index] =
-                                                          value;
-                                                    });
-                                                  }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    }),
-                                  ],
-                                ),
-                              ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-
-                      const SizedBox(height: 16),
-
-                      // Payment amount
-                      TextFormField(
-                        controller: amountController,
-                        decoration: const InputDecoration(
-                          labelText: 'Total Amount',
-                          border: OutlineInputBorder(),
-                          prefixText: 'Rs. ',
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter amount';
-                          }
-                          if (double.tryParse(value) == null) {
-                            return 'Please enter a valid number';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Payment details (shown when a method requiring details is selected)
-                      if (selectedPaymentMethods.any(
-                        (method) =>
-                            paymentMethods.firstWhere(
-                              (m) => m['id'] == method,
-                            )['requiresDetails'] ==
-                            true,
-                      ))
-                        TextFormField(
-                          controller: detailsController,
-                          decoration: const InputDecoration(
-                            labelText: 'Payment Details',
-                            border: OutlineInputBorder(),
-                            hintText: 'Enter payment reference or details',
+                      child: SingleChildScrollView(
+                        child: Table(
+                          columnWidths: const {
+                            0: FlexColumnWidth(2), // Item column
+                            1: FlexColumnWidth(3), // Payment Method column
+                          },
+                          border: TableBorder.all(
+                            color: Colors.grey.shade300,
+                            width: 1,
                           ),
-                          maxLines: 2,
+                          children: [
+                            TableRow(
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                              ),
+                              children: const [
+                                Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: Text(
+                                    'Item',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: Text(
+                                    'Payment Method',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ...List.generate(_rows.length, (index) {
+                              final item = _rows[index];
+                              return TableRow(
+                                decoration: BoxDecoration(
+                                  color: index.isOdd
+                                      ? Colors.grey.shade50
+                                      : Colors.white,
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(
+                                      '${item['name']} x${item['quantity']}',
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButtonFormField<String>(
+                                        value: selectedPaymentMethods[index],
+                                        isExpanded: true,
+                                        decoration: InputDecoration(
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                        ),
+                                        items: paymentMethods
+                                            .map<DropdownMenuItem<String>>((
+                                              method,
+                                            ) {
+                                              return DropdownMenuItem<String>(
+                                                value: method['id'],
+                                                child: Text(method['name']),
+                                              );
+                                            })
+                                            .toList(),
+                                        onChanged: (String? value) {
+                                          if (value != null) {
+                                            setState(() {
+                                              selectedPaymentMethods[index] =
+                                                  value;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }),
+                          ],
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: amountController,
+                      decoration: const InputDecoration(
+                        labelText: 'Total Amount',
+                        border: OutlineInputBorder(),
+                        prefixText: 'Rs. ',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: detailsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Payment Details',
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter payment reference or details',
+                      ),
+                      maxLines: 2,
+                    ),
+                  ],
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('CANCEL'),
+                  child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                  ),
                   onPressed: () {
-                    if (formKey.currentState?.validate() ?? false) {
-                      // Process the payment with all selected methods
-                      _processPayment(
-                        selectedPaymentMethods,
-                        amountController.text,
-                        detailsController.text,
-                      );
-
-                      // Clear the form after successful submission
-                      _rows.clear();
-
-                      // Show success message
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Invoice posted successfully!'),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                      }
-
-                      Navigator.of(context).pop();
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Invoice posted successfully!'),
+                      ),
+                    );
+                    Navigator.of(context).pop();
                   },
-                  child: const Text('CONFIRM PAYMENT'),
+                  child: const Text('Confirm'),
                 ),
               ],
             );
@@ -682,27 +603,21 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     );
   }
 
-  // Process payment when the confirm button is pressed
-  void _processPayment(
-    List<String> paymentMethods,
-    String amount,
-    String details,
-  ) {
-    debugPrint('Processing payment for ${_rows.length} items');
-    for (int i = 0; i < _rows.length; i++) {
-      debugPrint('Item ${i + 1}: ${_rows[i]['name']} - ${paymentMethods[i]}');
+  Future<void> _openAddItemDialog() async {
+    // Check if customer is selected
+    if (_selectedCustomer == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a customer first'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment processed: Rs. $amount'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  Future<void> _openAddItemDialog() async {
     final searchController = TextEditingController();
     final qtyController = TextEditingController(text: '1');
     final discountController = TextEditingController(text: '0');
@@ -1530,11 +1445,24 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
   }
 
   Future<void> _openDiscountTaxesDialog() async {
+    // Check if customer is selected
+    if (_selectedCustomer == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a customer first'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
     final discountCtrl = TextEditingController();
     String? selectedTax;
     bool isPercentageDiscount = true;
 
-    // List of available tax options
     final List<String> taxOptions = [
       'NBT 1 & VAT',
       'NBT 2 & VAT',
@@ -1555,7 +1483,6 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Discount Row
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1639,7 +1566,6 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Tax Dropdown
                   DropdownButtonFormField<String>(
                     value: selectedTax,
                     decoration: const InputDecoration(
@@ -1709,14 +1635,14 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
     final paymentMethods = [
       'Cash',
       'Master Card',
-      'Visa Card', 
+      'Visa Card',
       'Amex Card',
       'Credit',
       'Cheque',
       'Third Party Cheque',
       'COD',
       'Direct Deposit',
-      'Online'
+      'Online',
     ];
 
     showDialog(
@@ -1726,16 +1652,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
         content: DropdownButtonFormField<String>(
           value: selectedMethod,
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          items: paymentMethods
-              .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
+          items: paymentMethods.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
           }).toList(),
           onChanged: (String? newValue) {
             selectedMethod = newValue;
@@ -2012,7 +1932,6 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 clipBehavior: Clip.antiAlias,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // Use the full available width for the table
                     return DataTable(
                       columnSpacing: 12,
                       dataRowMinHeight: 48,
@@ -2184,14 +2103,22 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _showPaymentMethodDialog(context),
-                    child: const Text('Post'),
+                    onPressed: _rows.isEmpty
+                        ? null
+                        : () => _openPostInvoiceDialog(),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      backgroundColor: _rows.isEmpty
+                          ? Colors.grey.shade300
+                          : Theme.of(context).colorScheme.primary,
+                      foregroundColor: _rows.isEmpty
+                          ? Colors.grey.shade500
+                          : Theme.of(context).colorScheme.onPrimary,
                     ),
+                    child: const Text('Post'),
                   ),
                 ),
               ],
