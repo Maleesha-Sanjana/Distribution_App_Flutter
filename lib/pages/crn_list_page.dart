@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-class MyReturnPage extends StatefulWidget {
-  const MyReturnPage({super.key});
+class CrnListPage extends StatefulWidget {
+  const CrnListPage({super.key});
 
   @override
-  State<MyReturnPage> createState() => _MyReturnPageState();
+  State<CrnListPage> createState() => _CrnListPageState();
 }
 
-class _MyReturnPageState extends State<MyReturnPage> {
+class _CrnListPageState extends State<CrnListPage> {
   final _searchController = TextEditingController();
   final _returns = [
-    {'no': 'RTN-2001', 'date': '2025-10-08', 'reason': 'Damaged', 'status': 'Approved'},
-    {'no': 'RTN-2002', 'date': '2025-10-12', 'reason': 'Wrong item', 'status': 'Pending'},
+    {'no': 'CRN-2001', 'date': '2025-10-08', 'reason': 'Damaged', 'status': 'Approved'},
+    {'no': 'CRN-2002', 'date': '2025-10-12', 'reason': 'Wrong item', 'status': 'Pending'},
   ];
 
   @override
@@ -27,7 +27,7 @@ class _MyReturnPageState extends State<MyReturnPage> {
     final filtered = _returns.where((r) => q.isEmpty || (r['no'] as String).toLowerCase().contains(q)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Return')),
+      appBar: AppBar(title: const Text('CRN List')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -35,7 +35,7 @@ class _MyReturnPageState extends State<MyReturnPage> {
             TextField(
               controller: _searchController,
               decoration: const InputDecoration(
-                labelText: 'Search return no.',
+                labelText: 'Search CRN no.',
                 prefixIcon: Icon(Icons.search),
               ),
               onChanged: (_) => setState(() {}),

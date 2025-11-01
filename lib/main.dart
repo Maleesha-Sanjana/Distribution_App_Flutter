@@ -5,7 +5,7 @@ import 'pages/invoice_entry_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/customer_creation_page.dart';
 import 'pages/receipt_entry_page.dart';
-import 'pages/sales_return_entry_page.dart';
+import 'pages/crn_entry_page.dart';
 import 'pages/sales_dashboard_page.dart';
 import 'pages/sales_order_entry_page.dart';
 import 'pages/quotation_entry_page.dart';
@@ -13,7 +13,7 @@ import 'pages/stock_reports_overview_page.dart';
 import 'pages/stock_inventory_page.dart';
 import 'pages/stock_by_location_page.dart';
 import 'pages/invoice_list_page.dart';
-import 'pages/return_list_page.dart';
+import 'pages/crn_list_page.dart';
 import 'pages/collections_pending_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/menu_provider.dart';
@@ -22,7 +22,6 @@ import 'providers/database_data_provider.dart';
 
 void main() {
   runApp(const MyApp());
-  
 }
 
 class MyApp extends StatelessWidget {
@@ -248,10 +247,10 @@ class MyApp extends StatelessWidget {
           '/home': (_) => const HomePage(),
           '/customer-create': (_) => const CustomerCreationPage(),
           '/receipt': (_) => const ReceiptPage(),
-          '/customer-return': (_) => const CustomerReturnPage(),
+          '/sales-return': (_) => const CrnEntryPage(),
           '/my-sales': (_) => const MySalesDashboardPage(),
           '/my-invoice': (_) => const MyInvoicePage(),
-          '/my-return': (_) => const MyReturnPage(),
+          '/my-return': (_) => const CrnListPage(),
           '/to-be-collected': (_) => const ToBeCollectedPage(),
           '/sales-order': (_) => const SalesOrderPage(),
           '/quotation': (_) => const QuotationPage(),

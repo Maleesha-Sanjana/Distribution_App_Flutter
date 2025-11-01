@@ -181,6 +181,7 @@ class _LocationWiseStockPageState extends State<LocationWiseStockPage> {
 
   // Location selector state
   final List<String> _locations = const [
+    'All Locations',
     'My Location',
     'Colombo',
     'Badulla',
@@ -188,7 +189,7 @@ class _LocationWiseStockPageState extends State<LocationWiseStockPage> {
     'Jaffna',
     'Maleesha',
   ];
-  String _selectedLocation = 'My Location';
+  String _selectedLocation = 'All Locations';
 
   @override
   void dispose() {
