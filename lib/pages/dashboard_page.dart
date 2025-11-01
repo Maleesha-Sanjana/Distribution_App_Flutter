@@ -151,9 +151,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   case 3:
                     return buildCard(
                       icon: Icons.assignment_return_rounded,
-                      title: 'CRN (Customer Return Note)',
+                      title: 'CRN (Customer Return)',
                       subtitle: 'Process sales returns',
-                      onTap: () => Navigator.of(context).pushNamed('/customer-return'),
+                      onTap: () => Navigator.of(context).pushNamed('/sales-return'),
                       color: const Color(0xFFEF4444),
                     );
                   case 4:

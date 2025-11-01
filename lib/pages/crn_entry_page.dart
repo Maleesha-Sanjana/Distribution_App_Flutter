@@ -3,18 +3,28 @@ import 'package:provider/provider.dart';
 import '../providers/database_data_provider.dart';
 import '../models/food_item.dart';
 
-class CustomerReturnPage extends StatefulWidget {
-  const CustomerReturnPage({super.key});
+class CrnEntryPage extends StatefulWidget {
+  const CrnEntryPage({super.key});
 
   @override
-  State<CustomerReturnPage> createState() => _CustomerReturnPageState();
+  State<CrnEntryPage> createState() => _CrnEntryPageState();
 }
 
-class _CustomerReturnPageState extends State<CustomerReturnPage> {
+class _CrnEntryPageState extends State<CrnEntryPage> {
   String? _selectedCustomerCode;
   FoodItem? _selectedItem;
   final _qty = TextEditingController(text: '1');
   final _note = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load mock data when page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('Loading mock data for CRN page');
+      context.read<DatabaseDataProvider>().loadMockData();
+    });
+  }
 
   @override
   void dispose() {
@@ -24,6 +34,8 @@ class _CustomerReturnPageState extends State<CustomerReturnPage> {
   }
 
   void _save() {
+    debugPrint('Selected customer: $_selectedCustomerCode');
+    debugPrint('Selected item: ${_selectedItem?.productCode}');
     final qty = int.tryParse(_qty.text.trim());
     if (_selectedCustomerCode == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -56,27 +68,43 @@ class _CustomerReturnPageState extends State<CustomerReturnPage> {
       ],
       note: _note.text.trim().isEmpty ? null : _note.text.trim(),
     );
+    
+    // Clear fields after save
+    _qty.text = '1';
+    _note.clear();
+    setState(() {
+      _selectedCustomerCode = null;
+      _selectedItem = null;
+    });
+    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Customer return saved (mock).')),
+      SnackBar(
+        content: const Text('CRN saved successfully!'),
+        action: SnackBarAction(
+          label: 'OK',
+          onPressed: () {},
+        ),
+      ),
     );
-    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final database = context.watch<DatabaseDataProvider>();
+    debugPrint('CRN Page - Customer count: ${database.customers.length}');
+    debugPrint('CRN Page - Product count: ${database.menuItems.length}');
     final customers = database.customers;
     final products = database.menuItems;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Customer Return')),
+      appBar: AppBar(title: const Text('Create CRN')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Record a customer return (mock).'),
+              const Text('Create a Customer Return Note'),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Customer'),
@@ -88,6 +116,8 @@ class _CustomerReturnPageState extends State<CustomerReturnPage> {
                         ))
                     .toList(),
                 onChanged: (v) => setState(() => _selectedCustomerCode = v),
+                isExpanded: true,
+                icon: const Icon(Icons.arrow_drop_down),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<FoodItem>(
@@ -100,6 +130,8 @@ class _CustomerReturnPageState extends State<CustomerReturnPage> {
                         ))
                     .toList(),
                 onChanged: (v) => setState(() => _selectedItem = v),
+                isExpanded: true,
+                icon: const Icon(Icons.arrow_drop_down),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -116,7 +148,7 @@ class _CustomerReturnPageState extends State<CustomerReturnPage> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: _save,
-                child: const Text('Save Return (Mock)'),
+                child: const Text('Save CRN'),
               ),
             ],
           ),

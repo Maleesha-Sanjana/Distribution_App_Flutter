@@ -42,10 +42,21 @@ class _ReceiptPageState extends State<ReceiptPage> {
       amount: amount,
       note: _note.text.trim().isEmpty ? null : _note.text.trim(),
     );
+    
+    // Clear fields after save
+    _amount.clear();
+    _note.clear();
+    setState(() => _selectedCustomerCode = null);
+    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Receipt saved (mock).')),
+      SnackBar(
+        content: const Text('Mock receipt saved successfully!'),
+        action: SnackBarAction(
+          label: 'OK',
+          onPressed: () {},
+        ),
+      ),
     );
-    Navigator.of(context).pop();
   }
 
   @override
