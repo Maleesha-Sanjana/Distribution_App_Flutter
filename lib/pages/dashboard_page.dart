@@ -7,8 +7,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
@@ -49,6 +48,7 @@ class _HomePageState extends State<HomePage>
             padding: const EdgeInsets.all(14),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
@@ -65,6 +65,8 @@ class _HomePageState extends State<HomePage>
                     color: theme.colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -72,6 +74,57 @@ class _HomePageState extends State<HomePage>
         ),
       );
     }
+
+    final menuItems = [
+      {
+        'icon': Icons.shopping_cart_rounded,
+        'title': 'Sales Order',
+        'route': '/sales-order',
+        'color': const Color(0xFF6366F1),
+      },
+      {
+        'icon': Icons.request_quote_rounded,
+        'title': 'Invoice',
+        'route': '/invoices',
+        'color': const Color(0xFF10B981),
+      },
+      {
+        'icon': Icons.description_rounded,
+        'title': 'Quotation',
+        'route': '/quotation',
+        'color': const Color(0xFF22C55E),
+      },
+      {
+        'icon': Icons.assignment_return_rounded,
+        'title': 'CRN (Customer Return)',
+        'route': '/sales-return',
+        'color': const Color(0xFFEF4444),
+      },
+      {
+        'icon': Icons.receipt_long_rounded,
+        'title': 'Receipts',
+        'route': '/receipt',
+        'color': const Color(0xFF6366F1),
+      },
+      {
+        'icon': Icons.person_add_alt_1_rounded,
+        'title': 'Customer Registration',
+        'route': '/customer-create',
+        'color': const Color(0xFFF59E0B),
+      },
+      {
+        'icon': Icons.bar_chart_rounded,
+        'title': 'Stock Reports',
+        'route': '/stock-reports',
+        'color': const Color(0xFF0EA5E9),
+      },
+      {
+        'icon': Icons.payments_rounded,
+        'title': 'My Sales & Outstanding',
+        'route': '/my-sales',
+        'color': const Color(0xFF8B5CF6),
+      },
+    ];
 
     return Scaffold(
       extendBodyBehindAppBar: false,
@@ -81,9 +134,7 @@ class _HomePageState extends State<HomePage>
           color: Theme.of(context).colorScheme.onSurface,
           tooltip: 'Back to Login',
           onPressed: () {
-            Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil('/', (route) => false);
+            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
           },
         ),
         title: const Text('Distribution - Ref Portal'),
@@ -96,20 +147,9 @@ class _HomePageState extends State<HomePage>
             final crossAxisCount = width >= 1100
                 ? 4
                 : width >= 800
-                ? 3
-                : 2;
+                    ? 3
+                    : 2;
             const spacing = 16.0;
-            final availableWidth = width - spacing * (crossAxisCount - 1);
-            final itemWidth = availableWidth / crossAxisCount;
-
-            // 🔹 Reduced target height (smaller boxes)
-            final targetHeight = width >= 1100
-                ? 220.0
-                : width >= 800
-                ? 200.0
-                : 150.0;
-
-            final aspect = itemWidth / targetHeight;
 
             return GridView.builder(
               padding: const EdgeInsets.only(bottom: 20),
@@ -117,60 +157,16 @@ class _HomePageState extends State<HomePage>
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: spacing,
                 mainAxisSpacing: spacing,
-                childAspectRatio: aspect,
+                childAspectRatio: 1,
               ),
-              itemCount: 8,
+              itemCount: menuItems.length,
               itemBuilder: (context, index) {
-                // 🔹 Slightly smaller bottom-row cards
-                double scaleFactor = (index >= 4) ? 0.9 : 1.0;
-
-                return Transform.scale(
-                  scale: scaleFactor,
-                  child: buildCard(
-                    icon: [
-                      Icons.shopping_cart_rounded,
-                      Icons.request_quote_rounded,
-                      Icons.description_rounded,
-                      Icons.assignment_return_rounded,
-                      Icons.receipt_long_rounded,
-                      Icons.person_add_alt_1_rounded,
-                      Icons.bar_chart_rounded,
-                      Icons.payments_rounded,
-                    ][index],
-                    title: [
-                      'Sales Order',
-                      'Invoice',
-                      'Quotation',
-                      'CRN (Customer Return)',
-                      'Receipts',
-                      'Customer Registration',
-                      'Stock Reports',
-                      'My Sales & Outstanding',
-                    ][index],
-                    onTap: () {
-                      final routes = [
-                        '/sales-order',
-                        '/invoices',
-                        '/quotation',
-                        '/sales-return',
-                        '/receipt',
-                        '/customer-create',
-                        '/stock-reports',
-                        '/my-sales',
-                      ];
-                      Navigator.of(context).pushNamed(routes[index]);
-                    },
-                    color: [
-                      const Color(0xFF6366F1),
-                      const Color(0xFF10B981),
-                      const Color(0xFF22C55E),
-                      const Color(0xFFEF4444),
-                      const Color(0xFF6366F1),
-                      const Color(0xFFF59E0B),
-                      const Color(0xFF0EA5E9),
-                      const Color(0xFF8B5CF6),
-                    ][index],
-                  ),
+                final item = menuItems[index];
+                return buildCard(
+                  icon: item['icon'] as IconData,
+                  title: item['title'] as String,
+                  onTap: () => Navigator.of(context).pushNamed(item['route'] as String),
+                  color: item['color'] as Color,
                 );
               },
             );
