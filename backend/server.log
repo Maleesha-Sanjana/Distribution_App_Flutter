@@ -1,23 +1,14 @@
 🔌 Attempting to connect to database (1/5)...
 ✅ WebSocket server initialized
-node:events:486
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use 0.0.0.0:3000
-    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
-    at listenInCluster (node:net:1997:12)
-    at node:net:2206:7
-    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
-Emitted 'error' event on WebSocketServer instance at:
-    at Server.emit (node:events:508:28)
-    at emitErrorNT (node:net:1976:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
-  code: 'EADDRINUSE',
-  errno: -48,
-  syscall: 'listen',
-  address: '0.0.0.0',
-  port: 3000
-}
-
-Node.js v24.9.0
+🚀 Server running on http://0.0.0.0:3000
+📊 API endpoints available at http://localhost:3000/api/
+📊 Network access available at http://172.20.10.4:3000/api/
+🔌 WebSocket server available at ws://172.20.10.4:3000/ws
+✅ Connected to SQL Server database
+🔐 Authenticating user from gen_loginusers: test
+❌ Authentication failed for: test
+🔐 Authenticating user from gen_loginusers: test
+❌ Authentication failed for: test
+🔐 Authenticating user from gen_loginusers: Payment
+✅ User authenticated from gen_loginusers: Payment
+✅ Authentication successful for: Payment

@@ -418,10 +418,11 @@ app.get('/api/products/subdepartment/:subDepartmentCode', async (req, res) => {
   }
 });
 
-// Authenticate salesman
+// Authenticate user using gen_loginsers table
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { salesmanCode, password } = req.body;
+    const username = salesmanCode; // Use salesmanCode as username (User_Name)
     
     // Ensure database connection
     if (!pool) {
@@ -435,33 +436,75 @@ app.post('/api/auth/login', async (req, res) => {
       }
     }
     
-    console.log(`🔐 Authenticating salesman: ${salesmanCode}`);
+    console.log(`🔐 Authenticating user from gen_loginusers: ${username}`);
     
-    const result = await pool.request()
-      .input('salesmanCode', sql.NVarChar, salesmanCode)
+    // First, authenticate using gen_loginusers table
+    const loginResult = await pool.request()
+      .input('userName', sql.NVarChar, username)
       .input('password', sql.NVarChar, password)
       .query(`
-        SELECT * FROM gen_salesman 
-        WHERE SalesmanCode = @salesmanCode 
-        AND salesman_password = @password
-        AND (BlackListed = 0 OR BlackListed IS NULL)
-        AND (Suspend = 0 OR Suspend IS NULL)
+        SELECT * FROM gen_loginusers 
+        WHERE User_Name = @userName 
+        AND Password = @password
       `);
     
-    if (result.recordset.length > 0) {
-      console.log(`✅ Authentication successful for: ${result.recordset[0].SalesmanName}`);
-      res.json({ success: true, salesman: result.recordset[0] });
-    } else {
-      console.log(`❌ Authentication failed for: ${salesmanCode}`);
-      res.status(401).json({ success: false, message: 'Invalid credentials' });
+    if (loginResult.recordset.length === 0) {
+      console.log(`❌ Authentication failed for: ${username}`);
+      return res.status(401).json({ success: false, message: 'Invalid username or password' });
     }
+    
+    const loginUser = loginResult.recordset[0];
+    console.log(`✅ User authenticated from gen_loginusers: ${username}`);
+    
+    // Try to get additional salesman information if User_Name matches SalesmanCode
+    // This provides richer user information if available
+    try {
+      const salesmanResult = await pool.request()
+        .input('userName', sql.NVarChar, username)
+        .query(`
+          SELECT s.*, l.LocationDescription, l.CompanyCode
+          FROM gen_salesman s
+          LEFT JOIN gen_location l ON s.Location = l.LocationCode
+          WHERE s.SalesmanCode = @userName
+          AND (s.BlackListed = 0 OR s.BlackListed IS NULL)
+          AND (s.Suspend = 0 OR s.Suspend IS NULL)
+        `);
+      
+      if (salesmanResult.recordset.length > 0) {
+        // If salesman record exists, use it with full details
+        const salesman = salesmanResult.recordset[0];
+        console.log(`✅ Found salesman record for: ${salesman.SalesmanName || username}`);
+        return res.json({ success: true, salesman: salesman });
+      }
+    } catch (salesmanErr) {
+      console.log(`ℹ️  No salesman record found for ${username}, using gen_loginusers data only`);
+    }
+    
+    // If no salesman record found, create a basic salesman object from gen_loginusers
+    const basicSalesman = {
+      Idx: loginUser.Idx || loginUser.idx || 0,
+      SalesmanCode: loginUser.User_Name || username,
+      SalesmanName: loginUser.UserDescription || loginUser.User_Name || username,
+      SalesmanTitle: 'User',
+      SalesmanType: 'sales',
+      Email: null,
+      Mobile: null,
+      BlackListed: 0,
+      Suspend: 0,
+      Location: loginUser.LocationCode || null,
+      LocationDescription: null,
+      CompanyCode: loginUser.CompanyCode || null,
+    };
+    
+    console.log(`✅ Authentication successful for: ${basicSalesman.SalesmanName}`);
+    res.json({ success: true, salesman: basicSalesman });
   } catch (err) {
-    console.error('Error authenticating salesman:', err);
-    res.status(500).json({ success: false, message: 'Authentication failed' });
+    console.error('Error authenticating user:', err);
+    res.status(500).json({ success: false, message: 'Authentication failed', error: err.message });
   }
 });
 
-// Password-only authentication endpoint
+// Password-only authentication endpoint using gen_loginsers
 app.post('/api/auth/login-password', async (req, res) => {
   try {
     const { password } = req.body;
@@ -482,30 +525,67 @@ app.post('/api/auth/login-password', async (req, res) => {
       }
     }
     
-    console.log(`🔐 Authenticating with password: ${password}`);
+    console.log(`🔐 Authenticating with password from gen_loginusers`);
     
-    const result = await pool.request()
+    // Authenticate using gen_loginusers table
+    const loginResult = await pool.request()
       .input('password', sql.NVarChar, password)
       .query(`
-        SELECT s.*, l.LocationDescription, l.CompanyCode
-        FROM gen_salesman s
-        LEFT JOIN gen_location l ON s.Location = l.LocationCode
-        WHERE s.salesman_password = @password
-        AND (s.BlackListed = 0 OR s.BlackListed IS NULL)
-        AND (s.Suspend = 0 OR s.Suspend IS NULL)
+        SELECT * FROM gen_loginusers 
+        WHERE Password = @password
       `);
     
-    if (result.recordset.length > 0) {
-      const salesman = result.recordset[0];
-      console.log(`✅ Password authentication successful for: ${salesman.SalesmanName}`);
-      res.json({ success: true, salesman: salesman });
-    } else {
-      console.log(`❌ Password authentication failed for password: ${password}`);
-      res.status(401).json({ success: false, message: 'Invalid password' });
+    if (loginResult.recordset.length === 0) {
+      console.log(`❌ Password authentication failed`);
+      return res.status(401).json({ success: false, message: 'Invalid password' });
     }
+    
+    const loginUser = loginResult.recordset[0];
+    const username = loginUser.User_Name;
+    
+    // Try to get additional salesman information if User_Name matches SalesmanCode
+    try {
+      const salesmanResult = await pool.request()
+        .input('userName', sql.NVarChar, username)
+        .query(`
+          SELECT s.*, l.LocationDescription, l.CompanyCode
+          FROM gen_salesman s
+          LEFT JOIN gen_location l ON s.Location = l.LocationCode
+          WHERE s.SalesmanCode = @userName
+          AND (s.BlackListed = 0 OR s.BlackListed IS NULL)
+          AND (s.Suspend = 0 OR s.Suspend IS NULL)
+        `);
+      
+      if (salesmanResult.recordset.length > 0) {
+        const salesman = salesmanResult.recordset[0];
+        console.log(`✅ Password authentication successful for: ${salesman.SalesmanName}`);
+        return res.json({ success: true, salesman: salesman });
+      }
+    } catch (salesmanErr) {
+      console.log(`ℹ️  No salesman record found for ${username}, using gen_loginusers data only`);
+    }
+    
+    // If no salesman record found, create a basic salesman object from gen_loginusers
+    const basicSalesman = {
+      Idx: loginUser.Idx || loginUser.idx || 0,
+      SalesmanCode: loginUser.User_Name || username,
+      SalesmanName: loginUser.UserDescription || loginUser.User_Name || username,
+      SalesmanTitle: 'User',
+      SalesmanType: 'sales',
+      Email: null,
+      Mobile: null,
+      BlackListed: 0,
+      Suspend: 0,
+      Location: loginUser.LocationCode || null,
+      LocationDescription: null,
+      CompanyCode: loginUser.CompanyCode || null,
+    };
+    
+    console.log(`✅ Password authentication successful for: ${basicSalesman.SalesmanName}`);
+    res.json({ success: true, salesman: basicSalesman });
   } catch (err) {
     console.error('Error authenticating with password:', err);
-    res.status(500).json({ success: false, message: 'Authentication failed' });
+    res.status(500).json({ success: false, message: 'Authentication failed', error: err.message });
   }
 });
 
@@ -1414,6 +1494,323 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`📊 API endpoints available at http://localhost:${PORT}/api/`);
   console.log(`📊 Network access available at http://${serverIP}:${PORT}/api/`);
   console.log(`🔌 WebSocket server available at ws://${serverIP}:${PORT}/ws`);
+});
+
+// ==================== INVOICE POSTING ====================
+
+// Insert transaction items into inv_temptransaction (required before calling stored procedure)
+app.post('/api/invoice/temp-transactions', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Database not connected' });
+    }
+
+    const { tempDocNo, locaCode, costCenter, iid, transactions } = req.body;
+
+    if (!tempDocNo || !locaCode || !costCenter || !iid || !Array.isArray(transactions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: tempDocNo, locaCode, costCenter, iid, transactions array'
+      });
+    }
+
+    console.log(`📋 Inserting ${transactions.length} transactions for TempDocNo: ${tempDocNo}`);
+
+    // Delete existing transactions for this temp document
+    await pool.request()
+      .input('tempDocNo', sql.VarChar(20), tempDocNo)
+      .input('locaCode', sql.VarChar(5), locaCode)
+      .input('costCenter', sql.VarChar(10), costCenter)
+      .input('iid', sql.VarChar(5), iid)
+      .query('DELETE FROM inv_temptransaction WHERE TempDocNo = @tempDocNo AND LocaCode = @locaCode AND CostCenter = @costCenter AND Iid = @iid');
+
+    // Insert transactions
+    for (const txn of transactions) {
+      await pool.request()
+        .input('tempDocNo', sql.VarChar(20), tempDocNo)
+        .input('locaCode', sql.VarChar(5), locaCode)
+        .input('costCenter', sql.VarChar(10), costCenter)
+        .input('iid', sql.VarChar(5), iid)
+        .input('productCode', sql.VarChar(50), txn.productCode || '')
+        .input('productDescription', sql.VarChar(200), txn.productDescription || '')
+        .input('longDescription', sql.VarChar(500), txn.longDescription || '')
+        .input('margin', sql.Decimal(10, 3), txn.margin || 0)
+        .input('unit', sql.VarChar(20), txn.unit || '')
+        .input('packSize', sql.Decimal(10, 3), txn.packSize || 1)
+        .input('qty', sql.Decimal(10, 3), txn.qty || 0)
+        .input('freeQty', sql.Decimal(10, 3), txn.freeQty || 0)
+        .input('costPrice', sql.Decimal(10, 3), txn.costPrice || 0)
+        .input('unitPrice', sql.Decimal(10, 3), txn.unitPrice || 0)
+        .input('wholeSalePrice', sql.Decimal(10, 3), txn.wholeSalePrice || 0)
+        .input('batchNo', sql.VarChar(50), txn.batchNo || '')
+        .input('expiryDate', sql.DateTime, txn.expiryDate || null)
+        .input('discPer', sql.Decimal(10, 3), txn.discPer || 0)
+        .input('discAmount', sql.Decimal(10, 3), txn.discAmount || 0)
+        .input('amount', sql.Decimal(10, 3), txn.amount || 0)
+        .input('stockLoca', sql.VarChar(5), txn.stockLoca || locaCode)
+        .input('tax', sql.Decimal(10, 3), txn.tax || 0)
+        .input('refCode', sql.VarChar(50), txn.refCode || '')
+        .query(`
+          INSERT INTO inv_temptransaction (
+            TempDocNo, LocaCode, CostCenter, Iid, ProductCode, ProductDescription, LongDescription,
+            Margin, Unit, PackSize, Qty, FreeQty, CostPrice, UnitPrice, WholeSalePrice,
+            BatchNo, ExpiryDate, DiscPer, DiscAmount, Amount, StockLoca, Tax, RefCode
+          ) VALUES (
+            @tempDocNo, @locaCode, @costCenter, @iid, @productCode, @productDescription, @longDescription,
+            @margin, @unit, @packSize, @qty, @freeQty, @costPrice, @unitPrice, @wholeSalePrice,
+            @batchNo, @expiryDate, @discPer, @discAmount, @amount, @stockLoca, @tax, @refCode
+          )
+        `);
+    }
+
+    console.log(`✅ Inserted ${transactions.length} transactions successfully`);
+
+    res.json({
+      success: true,
+      message: `Inserted ${transactions.length} transactions`,
+      count: transactions.length
+    });
+
+  } catch (err) {
+    console.error('❌ Error inserting temp transactions:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to insert transactions',
+      details: err.message
+    });
+  }
+});
+
+// Insert payment items into inv_temppayment (required before calling stored procedure)
+app.post('/api/invoice/temp-payments', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Database not connected' });
+    }
+
+    const { tempDocNo, locaCode, payments } = req.body;
+
+    if (!tempDocNo || !locaCode || !Array.isArray(payments)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: tempDocNo, locaCode, payments array'
+      });
+    }
+
+    console.log(`💰 Inserting ${payments.length} payments for TempDocNo: ${tempDocNo}`);
+
+    // Delete existing payments for this temp document
+    await pool.request()
+      .input('tempDocNo', sql.VarChar(20), tempDocNo)
+      .input('locaCode', sql.VarChar(5), locaCode)
+      .query('DELETE FROM inv_temppayment WHERE TempDocNo = @tempDocNo AND LocaCode = @locaCode');
+
+    // Insert payments
+    for (const payment of payments) {
+      await pool.request()
+        .input('tempDocNo', sql.VarChar(20), tempDocNo)
+        .input('locaCode', sql.VarChar(5), locaCode)
+        .input('iid', sql.VarChar(5), payment.iid || 'IRE')
+        .input('paymentCode', sql.VarChar(20), payment.paymentCode || '001')
+        .input('amount', sql.Decimal(10, 3), payment.amount || 0)
+        .input('cardChequeNo', sql.VarChar(50), payment.cardChequeNo || '')
+        .input('currencyCode', sql.VarChar(10), payment.currencyCode || 'LKR')
+        .input('creditPeriod', sql.Int, payment.creditPeriod || 0)
+        .input('bankCode', sql.VarChar(20), payment.bankCode || '')
+        .input('branchCode', sql.VarChar(20), payment.branchCode || '')
+        .input('bankName', sql.VarChar(100), payment.bankName || '')
+        .input('branchName', sql.VarChar(100), payment.branchName || '')
+        .input('chequeDate', sql.DateTime, payment.chequeDate || null)
+        .input('terminalId', sql.VarChar(15), payment.terminalId || '')
+        .input('ledgerCode1', sql.VarChar(15), payment.ledgerCode1 || '')
+        .input('doubleEntery1', sql.VarChar(5), payment.doubleEntery1 || '')
+        .input('ledgerCode2', sql.VarChar(15), payment.ledgerCode2 || '')
+        .input('doubleEntery2', sql.VarChar(5), payment.doubleEntery2 || '')
+        .query(`
+          INSERT INTO inv_temppayment (
+            TempDocNo, LocaCode, Iid, PaymentCode, Amount, CardChequeNo, CurrencyCode,
+            CreditPeriod, BankCode, BranchCode, BankName, BranchName, ChequeDate,
+            TerminalId, LedgerCode1, DoubleEntery1, LedgerCode2, DoubleEntery2
+          ) VALUES (
+            @tempDocNo, @locaCode, @iid, @paymentCode, @amount, @cardChequeNo, @currencyCode,
+            @creditPeriod, @bankCode, @branchCode, @bankName, @branchName, @chequeDate,
+            @terminalId, @ledgerCode1, @doubleEntery1, @ledgerCode2, @doubleEntery2
+          )
+        `);
+    }
+
+    console.log(`✅ Inserted ${payments.length} payments successfully`);
+
+    res.json({
+      success: true,
+      message: `Inserted ${payments.length} payments`,
+      count: payments.length
+    });
+
+  } catch (err) {
+    console.error('❌ Error inserting temp payments:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to insert payments',
+      details: err.message
+    });
+  }
+});
+
+// Post invoice using stored procedure inv_USp_InvoicePostProcess
+app.post('/api/invoice/post', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Database not connected' });
+    }
+
+    const {
+      docAction = 'P', // 'P' for Post, 'S' for Save
+      customerCode,
+      customerName,
+      salesmanCode,
+      address,
+      iid = 'INV',
+      tempDocNo,
+      orgDocNo,
+      tourCode = '',
+      documentDate,
+      locaCode,
+      manualNo = '',
+      reference = '',
+      deliveryTerms = '',
+      paymentTerms = '',
+      remarks = '',
+      creditPeriod = 0,
+      grossAmount,
+      discPer = 0,
+      discAmount = 0,
+      taxPer = 0,
+      taxAmount = 0,
+      netAmount,
+      ledgerCode1 = '',
+      doubleEntery1 = '',
+      ledgerCode2 = '',
+      ledgerCode3 = '',
+      doubleEntery2 = '',
+      doubleEntery3 = '',
+      costCenter,
+      jobNumber = '',
+      otherCharge = 0,
+      recall = false,
+      quoRecall = false,
+      sonRecall = false,
+      disRecall = false,
+      toDispach = false,
+      saveDocNo = '',
+      salesType = '',
+      priceLevel = '',
+      quotation = '',
+      performer = '',
+      dispatch = '',
+      tempCreditAmt = 0,
+      roudAmt = 0,
+      poDate = null,
+      currancy = 'LKR',
+      user_Name,
+      // Transaction items will be inserted into inv_temptransaction first
+      // Payment items will be inserted into inv_temppayment first
+    } = req.body;
+
+    // Validate required fields
+    if (!customerCode || !salesmanCode || !tempDocNo || !locaCode || !costCenter || !user_Name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: customerCode, salesmanCode, tempDocNo, locaCode, costCenter, user_Name are required'
+      });
+    }
+
+    console.log(`📋 Posting invoice: TempDocNo=${tempDocNo}, Customer=${customerCode}, Action=${docAction}`);
+
+    // Create request for stored procedure
+    const request = pool.request();
+    
+    // Set all parameters (ensure no null values for required fields)
+    request.input('p_DocAction', sql.VarChar(2), docAction || 'P');
+    request.input('p_CustomerCode', sql.VarChar(20), customerCode);
+    request.input('p_CustomerName', sql.VarChar(50), (customerName || customerCode || '').substring(0, 50));
+    request.input('p_SalesmanCode', sql.VarChar(20), salesmanCode);
+    request.input('p_Address', sql.VarChar(150), (address || '').substring(0, 150));
+    request.input('p_Iid', sql.VarChar(5), iid || 'INV');
+    request.input('p_TempDocNo', sql.VarChar(20), tempDocNo);
+    request.input('p_OrgDocNo', sql.VarChar(20), (orgDocNo || tempDocNo || '').substring(0, 20));
+    request.input('p_TourCode', sql.VarChar(20), (tourCode || '').substring(0, 20));
+    request.input('p_DocumentDate', sql.DateTime, documentDate ? new Date(documentDate) : new Date());
+    request.input('p_LocaCode', sql.VarChar(5), (locaCode || '01').substring(0, 5));
+    request.input('p_ManualNo', sql.VarChar(20), (manualNo || '').substring(0, 20));
+    request.input('p_Reference', sql.VarChar(30), (reference || '').substring(0, 30));
+    request.input('p_DeliveryTerms', sql.VarChar(20), (deliveryTerms || '').substring(0, 20));
+    request.input('p_PaymentTerms', sql.VarChar(100), (paymentTerms || '').substring(0, 100));
+    request.input('p_Remarks', sql.VarChar(300), (remarks || '').substring(0, 300));
+    request.input('p_CreditPeriod', sql.Int, creditPeriod || 0);
+    request.input('p_GrossAmount', sql.Decimal(10, 3), grossAmount || 0);
+    request.input('p_DiscPer', sql.Decimal(10, 3), discPer || 0);
+    request.input('p_DiscAmount', sql.Decimal(10, 3), discAmount || 0);
+    request.input('p_TaxPer', sql.Decimal(10, 3), taxPer || 0);
+    request.input('p_TaxAmount', sql.Decimal(10, 3), taxAmount || 0);
+    request.input('p_NetAmount', sql.Decimal(10, 3), netAmount || grossAmount || 0);
+    request.input('p_LedgerCode1', sql.VarChar(15), (ledgerCode1 || '').substring(0, 15));
+    request.input('p_DoubleEntery1', sql.VarChar(5), (doubleEntery1 || '').substring(0, 5));
+    request.input('p_LedgerCode2', sql.VarChar(15), (ledgerCode2 || '').substring(0, 15));
+    request.input('p_LedgerCode3', sql.VarChar(15), (ledgerCode3 || '').substring(0, 15));
+    request.input('p_DoubleEntery2', sql.VarChar(5), (doubleEntery2 || '').substring(0, 5));
+    request.input('p_DoubleEntery3', sql.VarChar(5), (doubleEntery3 || '').substring(0, 5));
+    request.input('p_CostCenter', sql.VarChar(10), (costCenter || '01').substring(0, 10));
+    request.input('p_JobNumber', sql.VarChar(10), (jobNumber || '').substring(0, 10));
+    request.input('p_OtherCharge', sql.Decimal(10, 3), otherCharge || 0);
+    request.input('p_Recall', sql.Bit, recall ? 1 : 0);
+    request.input('p_QuoRecall', sql.Bit, quoRecall ? 1 : 0);
+    request.input('p_SonRecall', sql.Bit, sonRecall ? 1 : 0);
+    request.input('p_DisRecall', sql.Bit, disRecall ? 1 : 0);
+    request.input('p_ToDispach', sql.Bit, toDispach ? 1 : 0);
+    request.input('p_SaveDocNo', sql.VarChar(20), (saveDocNo || '').substring(0, 20));
+    request.input('p_SalesType', sql.VarChar(20), (salesType || '').substring(0, 20));
+    request.input('p_PriceLevel', sql.VarChar(15), (priceLevel || '').substring(0, 15));
+    request.input('p_Quotation', sql.VarChar(20), (quotation || '').substring(0, 20));
+    request.input('p_Performer', sql.VarChar(20), (performer || '').substring(0, 20));
+    request.input('p_Dispatch', sql.VarChar(20), (dispatch || '').substring(0, 20));
+    request.input('p_TempCreditAmt', sql.Decimal(10, 3), tempCreditAmt || 0);
+    request.input('p_RoudAmt', sql.Decimal(10, 3), roudAmt || 0);
+    request.input('p_PODate', sql.DateTime, poDate ? new Date(poDate) : null);
+    request.input('p_Currancy', sql.VarChar(20), (currancy || 'LKR').substring(0, 20));
+    request.input('p_User_Name', sql.VarChar(50), (user_Name || '').substring(0, 50));
+
+    // Execute stored procedure
+    console.log(`📋 Executing stored procedure: inv_USp_InvoicePostProcess`);
+    console.log(`📋 Key parameters: TempDocNo=${tempDocNo}, Customer=${customerCode}, Amount=${netAmount}`);
+    
+    const result = await request.execute('inv_USp_InvoicePostProcess');
+
+    console.log(`✅ Invoice ${docAction === 'P' ? 'posted' : 'saved'} successfully: ${orgDocNo || tempDocNo}`);
+    console.log(`📊 Stored procedure result:`, JSON.stringify(result, null, 2));
+
+    res.json({
+      success: true,
+      message: `Invoice ${docAction === 'P' ? 'posted' : 'saved'} successfully`,
+      documentNo: orgDocNo || tempDocNo,
+      tempDocNo: tempDocNo
+    });
+
+  } catch (err) {
+    console.error('❌ Error posting invoice:', err);
+    console.error('❌ Error name:', err.name);
+    console.error('❌ Error message:', err.message);
+    console.error('❌ Error stack:', err.stack);
+    console.error('❌ Full error object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to post invoice',
+      details: err.message,
+      errorCode: err.code,
+      errorNumber: err.number
+    });
+  }
 });
 
 // Graceful shutdown

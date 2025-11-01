@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../providers/cart_provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 
 class InvoiceSimplePage extends StatefulWidget {
   const InvoiceSimplePage({super.key});
@@ -633,7 +635,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     // Validate all items have payment methods
                     if (selectedPaymentMethods.any(
                       (method) => method == null,
@@ -649,12 +651,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       return;
                     }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Invoice posted successfully!'),
-                      ),
-                    );
-                    Navigator.of(context).pop();
+                    // Post invoice using stored procedure
+                    Navigator.of(context).pop(); // Close dialog first
+                    await _postInvoice(context, selectedPaymentMethods);
                   },
                   child: const Text('Post Invoice'),
                 ),
@@ -2047,7 +2046,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           const DataColumn(label: Text('Qty'), numeric: true),
                           const DataColumn(label: Text('Free'), numeric: true),
                           const DataColumn(label: Text('Rs. Disc')),
-                          const DataColumn(label: Text('Price (Rs.)'), numeric: true),
+                          const DataColumn(
+                            label: Text('Price (Rs.)'),
+                            numeric: true,
+                          ),
                           const DataColumn(
                             label: Text('Subtotal (Rs.)'),
                             numeric: true,
@@ -2056,7 +2058,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                             label: Text('Discount (Rs.)'),
                             numeric: true,
                           ),
-                          const DataColumn(label: Text('Total (Rs.)'), numeric: true),
+                          const DataColumn(
+                            label: Text('Total (Rs.)'),
+                            numeric: true,
+                          ),
                           const DataColumn(
                             label: Text('Action'),
                             numeric: false,
@@ -2281,5 +2286,351 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
         ),
       ),
     );
+  }
+
+  // Map payment method names to payment codes
+  String _getPaymentCode(String? methodName) {
+    if (methodName == null) return '001'; // Cash default
+
+    const Map<String, String> paymentCodeMap = {
+      'cash': '001',
+      'master_card': '002',
+      'visa_card': '003',
+      'amex_card': '004',
+      'credit': '006',
+      'cheque': '007',
+      'third_party_cheque': '007',
+      'cod': '001',
+      'direct_deposit': '008',
+      'online': '009',
+    };
+
+    return paymentCodeMap[methodName.toLowerCase()] ?? '001';
+  }
+
+  // Post invoice using stored procedure
+  Future<void> _postInvoice(
+    BuildContext context,
+    List<String?> selectedPaymentMethods,
+  ) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    if (_rows.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add items to the invoice'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedCustomer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a customer'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Get salesman and location info
+    final salesmanCode = authProvider.salesmanCode;
+    final salesmanLocation = authProvider.currentSalesman?.location;
+
+    if (salesmanCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Salesman information not available. Please login again.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Generate temp document number (use timestamp)
+      final tempDocNo = 'TMP${DateTime.now().millisecondsSinceEpoch}';
+      final documentDate = DateTime.now();
+      final locaCode = salesmanLocation ?? '01';
+      // Cost center format: must match gen_documentno format (e.g., '000001' for Costcenter)
+      final costCenter = '000001'; // Default cost center - must match gen_documentno format
+      final user_Name =
+          authProvider.currentSalesman?.salesmanName ?? salesmanCode;
+
+      // Calculate totals
+      final subtotal = _calculateSubTotal();
+      final discountAmount = _invoiceDiscount;
+      final grossAmount = subtotal;
+      final netAmount = _calculateTotal();
+      final taxAmount = _selectedTax != null
+          ? netAmount * 0.15
+          : 0.0; // Example VAT calculation
+
+      // Map rows to transactions
+      final transactions = _rows.map((row) {
+        final qty = (row['quantity'] as num?)?.toDouble() ?? 0.0;
+        final freeQty = (row['freeQuantity'] as num?)?.toDouble() ?? 0.0;
+        final unitPrice = (row['price'] as num?)?.toDouble() ?? 0.0;
+        final discAmount = (row['discountAmount'] as num?)?.toDouble() ?? 0.0;
+        final discPer = (row['discountPercent'] as num?)?.toDouble() ?? 0.0;
+        final amount =
+            (row['amount'] as num?)?.toDouble() ?? unitPrice * qty - discAmount;
+
+        return {
+          'productCode': row['code'] ?? '',
+          'productDescription': row['name'] ?? '',
+          'longDescription': row['name'] ?? '',
+          'margin': 0.0,
+          'unit': row['uom'] ?? 'PCS',
+          'packSize': 1.0,
+          'qty': qty,
+          'freeQty': freeQty,
+          'costPrice': unitPrice * 0.7, // Example cost calculation
+          'unitPrice': unitPrice,
+          'wholeSalePrice': unitPrice,
+          'batchNo': '',
+          'expiryDate': null,
+          'discPer': discPer,
+          'discAmount': discAmount,
+          'amount': amount,
+          'stockLoca': locaCode,
+          'tax': 0.0,
+          'refCode': '',
+        };
+      }).toList();
+
+      // Map payment methods to payments
+      // The stored procedure expects payments to be aggregated, not per-item
+      final payments = <Map<String, dynamic>>[];
+      double totalPaid = 0.0;
+
+      // Group payments by payment code (aggregate amounts)
+      final paymentMap = <String, double>{};
+
+      for (
+        int i = 0;
+        i < _rows.length && i < selectedPaymentMethods.length;
+        i++
+      ) {
+        final row = _rows[i];
+        final paymentMethod = selectedPaymentMethods[i];
+        final amount = (row['amount'] as num?)?.toDouble() ?? 0.0;
+
+        if (paymentMethod != null && amount > 0) {
+          final paymentCode = _getPaymentCode(paymentMethod);
+          totalPaid += amount;
+          paymentMap[paymentCode] = (paymentMap[paymentCode] ?? 0.0) + amount;
+        }
+      }
+
+      // Convert payment map to payment entries
+      paymentMap.forEach((paymentCode, amount) {
+        payments.add({
+          'iid': 'IRE', // All invoice payments are IRE
+          'paymentCode': paymentCode,
+          'amount': amount,
+          'cardChequeNo': '',
+          'currencyCode': 'LKR',
+          'creditPeriod': paymentCode == '006'
+              ? 30
+              : 0, // Credit period for credit payment
+          'bankCode': '',
+          'branchCode': '',
+          'bankName': '',
+          'branchName': '',
+          'chequeDate': null,
+          'terminalId': '',
+          'ledgerCode1': '',
+          'doubleEntery1': '',
+          'ledgerCode2': '',
+          'doubleEntery2': '',
+        });
+      });
+
+      // If there's a remaining balance (credit), add it as credit payment
+      final remainingBalance = netAmount - totalPaid;
+      if (remainingBalance > 0.01) {
+        payments.add({
+          'iid': 'IRE',
+          'paymentCode': '006', // Credit
+          'amount': remainingBalance,
+          'cardChequeNo': '',
+          'currencyCode': 'LKR',
+          'creditPeriod': 30,
+          'bankCode': '',
+          'branchCode': '',
+          'bankName': '',
+          'branchName': '',
+          'chequeDate': null,
+          'terminalId': '',
+          'ledgerCode1': '',
+          'doubleEntery1': '',
+          'ledgerCode2': '',
+          'doubleEntery2': '',
+        });
+      }
+
+      // If no payments at all, create a credit payment for full amount
+      if (payments.isEmpty) {
+        payments.add({
+          'iid': 'IRE',
+          'paymentCode': '006', // Credit
+          'amount': netAmount,
+          'cardChequeNo': '',
+          'currencyCode': 'LKR',
+          'creditPeriod': 30,
+          'bankCode': '',
+          'branchCode': '',
+          'bankName': '',
+          'branchName': '',
+          'chequeDate': null,
+          'terminalId': '',
+          'ledgerCode1': '',
+          'doubleEntery1': '',
+          'ledgerCode2': '',
+          'doubleEntery2': '',
+        });
+      }
+
+      // Step 1: Insert transactions into temp table
+      await ApiService.insertTempTransactions(
+        tempDocNo: tempDocNo,
+        locaCode: locaCode,
+        costCenter: costCenter,
+        iid: 'INV',
+        transactions: transactions,
+      );
+
+      // Step 2: Insert payments into temp table
+      // Always ensure at least one payment entry exists (even if all items are credit)
+      if (payments.isEmpty) {
+        // If no payments, create a credit payment for the full amount
+        payments.add({
+          'iid': 'IRE',
+          'paymentCode': '006', // Credit
+          'amount': netAmount,
+          'cardChequeNo': '',
+          'currencyCode': 'LKR',
+          'creditPeriod': 30,
+          'bankCode': '',
+          'branchCode': '',
+          'bankName': '',
+          'branchName': '',
+          'chequeDate': null,
+          'terminalId': '',
+          'ledgerCode1': '',
+          'doubleEntery1': '',
+          'ledgerCode2': '',
+          'doubleEntery2': '',
+        });
+      }
+
+      await ApiService.insertTempPayments(
+        tempDocNo: tempDocNo,
+        locaCode: locaCode,
+        payments: payments,
+      );
+
+      // Step 3: Call stored procedure to post invoice
+      final result = await ApiService.postInvoice(
+        docAction: 'P', // Post
+        customerCode: _selectedCustomer!['code'] ?? '',
+        customerName: _selectedCustomer!['name'],
+        salesmanCode: salesmanCode,
+        tempDocNo: tempDocNo,
+        locaCode: locaCode,
+        costCenter: costCenter,
+        user_Name: user_Name,
+        address: '',
+        iid: 'INV',
+        documentDate: documentDate,
+        reference: _remarksController.text,
+        remarks: _remarksController.text,
+        grossAmount: grossAmount,
+        discAmount: discountAmount,
+        taxAmount: taxAmount,
+        netAmount: netAmount,
+        quotation: _selectedQuotation?['id'] ?? '',
+        performer: _selectedSalesOrder?['id'] ?? '',
+        currancy: 'LKR',
+      );
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Invoice posted successfully! Document No: ${result['documentNo']}',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Clear invoice data
+        setState(() {
+          _rows.clear();
+          _selectedCustomer = null;
+          _selectedQuotation = null;
+          _selectedSalesOrder = null;
+          _invoiceDiscount = 0.0;
+          _remarksController.clear();
+          _manualController.clear();
+        });
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show detailed error message
+      if (mounted) {
+        String errorMessage = 'Failed to post invoice';
+        if (e.toString().contains('Exception:')) {
+          errorMessage = e.toString().replaceFirst('Exception: ', '');
+        } else {
+          errorMessage = e.toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $errorMessage'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: 'Details',
+              textColor: Colors.white,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Error Details'),
+                    content: SingleChildScrollView(child: Text(errorMessage)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    }
   }
 }
