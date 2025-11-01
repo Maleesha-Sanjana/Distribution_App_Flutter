@@ -508,6 +508,189 @@ class ApiService {
     }
   }
 
+  // ==================== INVOICE POSTING ====================
+
+  // Insert transaction items into inv_temptransaction
+  static Future<Map<String, dynamic>> insertTempTransactions({
+    required String tempDocNo,
+    required String locaCode,
+    required String costCenter,
+    required String iid,
+    required List<Map<String, dynamic>> transactions,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/invoice/temp-transactions'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'tempDocNo': tempDocNo,
+          'locaCode': locaCode,
+          'costCenter': costCenter,
+          'iid': iid,
+          'transactions': transactions,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['error'] ?? 'Failed to insert transactions');
+      }
+    } catch (e) {
+      print('Error inserting temp transactions: $e');
+      rethrow;
+    }
+  }
+
+  // Insert payment items into inv_temppayment
+  static Future<Map<String, dynamic>> insertTempPayments({
+    required String tempDocNo,
+    required String locaCode,
+    required List<Map<String, dynamic>> payments,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/invoice/temp-payments'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'tempDocNo': tempDocNo,
+          'locaCode': locaCode,
+          'payments': payments,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['error'] ?? 'Failed to insert payments');
+      }
+    } catch (e) {
+      print('Error inserting temp payments: $e');
+      rethrow;
+    }
+  }
+
+  // Post invoice using stored procedure
+  static Future<Map<String, dynamic>> postInvoice({
+    required String docAction, // 'P' for Post, 'S' for Save
+    required String customerCode,
+    required String salesmanCode,
+    required String tempDocNo,
+    required String locaCode,
+    required String costCenter,
+    required String user_Name,
+    String? customerName,
+    String? address,
+    String? iid,
+    String? orgDocNo,
+    String? tourCode,
+    DateTime? documentDate,
+    String? manualNo,
+    String? reference,
+    String? deliveryTerms,
+    String? paymentTerms,
+    String? remarks,
+    int? creditPeriod,
+    double? grossAmount,
+    double? discPer,
+    double? discAmount,
+    double? taxPer,
+    double? taxAmount,
+    double? netAmount,
+    String? ledgerCode1,
+    String? doubleEntery1,
+    String? ledgerCode2,
+    String? ledgerCode3,
+    String? doubleEntery2,
+    String? doubleEntery3,
+    String? jobNumber,
+    double? otherCharge,
+    bool? recall,
+    bool? quoRecall,
+    bool? sonRecall,
+    bool? disRecall,
+    bool? toDispach,
+    String? saveDocNo,
+    String? salesType,
+    String? priceLevel,
+    String? quotation,
+    String? performer,
+    String? dispatch,
+    double? tempCreditAmt,
+    double? roudAmt,
+    DateTime? poDate,
+    String? currancy,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/invoice/post'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'docAction': docAction,
+          'customerCode': customerCode,
+          'customerName': customerName,
+          'salesmanCode': salesmanCode,
+          'address': address,
+          'iid': iid ?? 'INV',
+          'tempDocNo': tempDocNo,
+          'orgDocNo': orgDocNo,
+          'tourCode': tourCode,
+          'documentDate': documentDate?.toIso8601String(),
+          'locaCode': locaCode,
+          'manualNo': manualNo,
+          'reference': reference,
+          'deliveryTerms': deliveryTerms,
+          'paymentTerms': paymentTerms,
+          'remarks': remarks,
+          'creditPeriod': creditPeriod,
+          'grossAmount': grossAmount,
+          'discPer': discPer,
+          'discAmount': discAmount,
+          'taxPer': taxPer,
+          'taxAmount': taxAmount,
+          'netAmount': netAmount,
+          'ledgerCode1': ledgerCode1,
+          'doubleEntery1': doubleEntery1,
+          'ledgerCode2': ledgerCode2,
+          'ledgerCode3': ledgerCode3,
+          'doubleEntery2': doubleEntery2,
+          'doubleEntery3': doubleEntery3,
+          'costCenter': costCenter,
+          'jobNumber': jobNumber,
+          'otherCharge': otherCharge,
+          'recall': recall,
+          'quoRecall': quoRecall,
+          'sonRecall': sonRecall,
+          'disRecall': disRecall,
+          'toDispach': toDispach,
+          'saveDocNo': saveDocNo,
+          'salesType': salesType,
+          'priceLevel': priceLevel,
+          'quotation': quotation,
+          'performer': performer,
+          'dispatch': dispatch,
+          'tempCreditAmt': tempCreditAmt,
+          'roudAmt': roudAmt,
+          'poDate': poDate?.toIso8601String(),
+          'currancy': currancy ?? 'LKR',
+          'user_Name': user_Name,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['error'] ?? 'Failed to post invoice');
+      }
+    } catch (e) {
+      print('Error posting invoice: $e');
+      rethrow;
+    }
+  }
+
   // ==================== HEALTH CHECK ====================
 
   static Future<bool> checkHealth() async {

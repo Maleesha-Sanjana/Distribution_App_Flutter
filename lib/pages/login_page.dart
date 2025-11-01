@@ -24,10 +24,6 @@ class _LandingPageState extends State<LandingPage>
 
   bool _obscurePassword = true;
 
-  // Mock credentials
-  static const mockUsername = 'maleesha';
-  static const mockPassword = 'maleesha123';
-
   @override
   void initState() {
     super.initState();
@@ -72,25 +68,26 @@ class _LandingPageState extends State<LandingPage>
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate mock credentials
-    if (usernameController.text != mockUsername || 
-        passwordController.text != mockPassword) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid username or password'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
     final auth = context.read<AuthProvider>();
     try {
-      // Mock successful login
-      if (mounted) {
+      // Authenticate using API with gen_loginsers table
+      final success = await auth.login(
+        usernameController.text.trim(),
+        passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (success) {
         Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(auth.errorMessage ?? 'Invalid username or password'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
