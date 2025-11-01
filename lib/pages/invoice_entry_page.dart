@@ -397,15 +397,28 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       {'id': 'amex_card', 'name': 'Amex Card', 'requiresDetails': true},
       {'id': 'credit', 'name': 'Credit', 'requiresDetails': true},
       {'id': 'cheque', 'name': 'Cheque', 'requiresDetails': true},
-      {'id': 'third_party_cheque', 'name': 'Third Party Cheque', 'requiresDetails': true},
+      {
+        'id': 'third_party_cheque',
+        'name': 'Third Party Cheque',
+        'requiresDetails': true,
+      },
       {'id': 'cod', 'name': 'COD', 'requiresDetails': false},
-      {'id': 'direct_deposit', 'name': 'Direct Deposit', 'requiresDetails': true},
+      {
+        'id': 'direct_deposit',
+        'name': 'Direct Deposit',
+        'requiresDetails': true,
+      },
       {'id': 'online', 'name': 'Online', 'requiresDetails': true},
     ];
 
-    final List<String?> selectedPaymentMethods = List.filled(_rows.length, null);
-    final List<TextEditingController> detailControllers = 
-        List.generate(_rows.length, (_) => TextEditingController());
+    final List<String?> selectedPaymentMethods = List.filled(
+      _rows.length,
+      null,
+    );
+    final List<TextEditingController> detailControllers = List.generate(
+      _rows.length,
+      (_) => TextEditingController(),
+    );
 
     final amountController = TextEditingController();
     final generalDetailsController = TextEditingController();
@@ -433,7 +446,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Post Invoice'),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 16,
+              ),
               insetPadding: const EdgeInsets.all(20),
               content: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
@@ -509,12 +525,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           itemCount: _rows.length,
                           itemBuilder: (context, index) {
                             final item = _rows[index];
-                            final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+                            final price =
+                                (item['price'] as num?)?.toDouble() ?? 0.0;
                             final qty = (item['qty'] as num?)?.toInt() ?? 1;
-                            final discount = (item['discount'] as String?)?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0';
-                            final discountValue = double.tryParse(discount) ?? 0.0;
+                            final discount =
+                                (item['discount'] as String?)?.replaceAll(
+                                  RegExp(r'[^0-9.]'),
+                                  '',
+                                ) ??
+                                '0';
+                            final discountValue =
+                                double.tryParse(discount) ?? 0.0;
                             final subtotal = price * qty;
-                            
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -530,7 +553,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                   dense: true,
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   child: DropdownButtonFormField<String>(
                                     value: selectedPaymentMethods[index],
                                     decoration: const InputDecoration(
@@ -551,12 +576,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                     },
                                   ),
                                 ),
-                                if (selectedPaymentMethods[index] != null && 
+                                if (selectedPaymentMethods[index] != null &&
                                     paymentMethods.firstWhere(
-                                      (m) => m['id'] == selectedPaymentMethods[index],
+                                      (m) =>
+                                          m['id'] ==
+                                          selectedPaymentMethods[index],
                                     )['requiresDetails'])
                                   Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      8,
+                                      16,
+                                      16,
+                                    ),
                                     child: TextField(
                                       controller: detailControllers[index],
                                       decoration: const InputDecoration(
@@ -603,16 +635,20 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 ElevatedButton(
                   onPressed: () {
                     // Validate all items have payment methods
-                    if (selectedPaymentMethods.any((method) => method == null)) {
+                    if (selectedPaymentMethods.any(
+                      (method) => method == null,
+                    )) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Please select payment methods for all items'),
+                          content: Text(
+                            'Please select payment methods for all items',
+                          ),
                           backgroundColor: Colors.red,
                         ),
                       );
                       return;
                     }
-                    
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Invoice posted successfully!'),
@@ -850,7 +886,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                 : ListView.separated(
                                     shrinkWrap: true,
                                     itemCount: filteredItems.length,
-                                    separatorBuilder: (_, __) => const Divider(height: 1),
+                                    separatorBuilder: (_, __) =>
+                                        const Divider(height: 1),
                                     itemBuilder: (context, index) {
                                       final item = filteredItems[index];
                                       final isSelected =
@@ -1001,7 +1038,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            useAmountDiscount ? 'Flat discount' : '% discount',
+                            useAmountDiscount
+                                ? 'Flat item discount'
+                                : '% item discount',
                             style: theme.textTheme.bodyMedium,
                           ),
                         ],
@@ -1112,10 +1151,11 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.vertical,
                                   child: DataTable(
-                                    columnSpacing: 12,
+                                    columnSpacing: 16,
                                     dataRowMinHeight: 44,
                                     columns: const [
                                       DataColumn(label: Text('Item')),
+                                      DataColumn(label: Text('Item Name')),
                                       DataColumn(
                                         label: Text('Qty'),
                                         numeric: true,
@@ -1124,7 +1164,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                         label: Text('Free'),
                                         numeric: true,
                                       ),
-                                      DataColumn(label: Text('Disc')),
+                                      DataColumn(label: Text('Disc (Rs.)')),
                                       DataColumn(
                                         label: Text('Net'),
                                         numeric: true,
@@ -1149,6 +1189,18 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                                 ),
                                               ),
                                               DataCell(
+                                                Text(
+                                                  entry.value['item']
+                                                          ?.toString()
+                                                          .split('•')
+                                                          .last
+                                                          .trim() ??
+                                                      '',
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              DataCell(
                                                 Text('${entry.value['qty']}'),
                                               ),
                                               DataCell(
@@ -1158,12 +1210,12 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                               ),
                                               DataCell(
                                                 Text(
-                                                  '${entry.value['discount']}',
+                                                  'Rs. ${entry.value['discount'] ?? '0.00'}',
                                                 ),
                                               ),
                                               DataCell(
                                                 Text(
-                                                  'Rs ${(entry.value['price'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
+                                                  'Rs. ${(entry.value['price'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
                                                 ),
                                               ),
                                               DataCell(
@@ -1303,7 +1355,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
         : _invoiceDiscount;
 
     // Apply discount (but don't go below 0)
-    double discountedTotal = (subtotal - discountAmount).clamp(0, double.infinity);
+    double discountedTotal = (subtotal - discountAmount).clamp(
+      0,
+      double.infinity,
+    );
 
     // TODO: Add tax calculation based on _selectedTax
     return discountedTotal;
@@ -1351,9 +1406,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                 'Subtotal: Rs ${subtotal.toStringAsFixed(2)}',
                 style: theme.textTheme.titleMedium,
               ),
-              const SizedBox(height: 4),
               Text(
-                'Discount: ${_isPercentageDiscount ? '%' : 'Rs'} ${_invoiceDiscount.toStringAsFixed(2)}',
+                'Full Bill Discount: ${_isPercentageDiscount ? '%' : 'Rs'} ${_invoiceDiscount.toStringAsFixed(2)}',
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
@@ -1479,7 +1533,8 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(<String, String>{}),
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(<String, String>{}),
               child: const Text('None'),
             ),
             TextButton(
@@ -1506,7 +1561,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
       return;
     }
 
-    final discountCtrl = TextEditingController(text: _invoiceDiscount.toString());
+    final discountCtrl = TextEditingController(
+      text: _invoiceDiscount.toString(),
+    );
 
     await showDialog<void>(
       context: context,
@@ -1614,18 +1671,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                       ),
                       isDense: true,
                     ),
-                    items: [
-                      'NBT 1 & VAT',
-                      'NBT 2 & VAT',
-                      'VAT',
-                      'NBT, VAT',
-                      'NBT 1, VAT',
-                    ].map((String tax) {
-                      return DropdownMenuItem<String>(
-                        value: tax,
-                        child: Text(tax),
-                      );
-                    }).toList(),
+                    items:
+                        [
+                          'NBT 1 & VAT',
+                          'NBT 2 & VAT',
+                          'VAT',
+                          'NBT, VAT',
+                          'NBT 1, VAT',
+                        ].map((String tax) {
+                          return DropdownMenuItem<String>(
+                            value: tax,
+                            child: Text(tax),
+                          );
+                        }).toList(),
                     onChanged: (String? value) {
                       setState(() {
                         _selectedTax = value;
@@ -1980,17 +2038,15 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: DataTable(
-                        columnSpacing: 12,
+                        columnSpacing: 16,
                         dataRowMinHeight: 48,
                         dataRowMaxHeight: 72,
                         columns: [
-                          const DataColumn(label: Text('Item'), numeric: false),
+                          const DataColumn(label: Text('Item')),
+                          const DataColumn(label: Text('Item Name')),
                           const DataColumn(label: Text('Qty'), numeric: true),
                           const DataColumn(label: Text('Free'), numeric: true),
-                          const DataColumn(
-                            label: Text('Discount'),
-                            numeric: true,
-                          ),
+                          const DataColumn(label: Text('Rs. Disc')),
                           const DataColumn(label: Text('Price'), numeric: true),
                           const DataColumn(
                             label: Text('Subtotal'),
@@ -2000,17 +2056,10 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                             label: Text('Discount'),
                             numeric: true,
                           ),
+                          const DataColumn(label: Text('Total'), numeric: true),
                           const DataColumn(
-                            label: Text('Total'),
-                            numeric: true,
-                          ),
-                          const DataColumn(
-                            label: SizedBox(
-                              width: 60,
-                              child: Center(child: Text('Action')),
-                            ),
+                            label: Text('Action'),
                             numeric: false,
-                            tooltip: 'Remove item',
                           ),
                         ],
                         rows: _rows.asMap().entries.map((entry) {
@@ -2018,17 +2067,34 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           final r = entry.value;
                           final price = (r['price'] as num?)?.toDouble() ?? 0.0;
                           final qty = (r['qty'] as num?)?.toInt() ?? 1;
-                          final discount = (r['discount'] as String?)?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '0';
-                          
+                          final discount =
+                              (r['discount'] as String?)?.replaceAll(
+                                RegExp(r'[^0-9.]'),
+                                '',
+                              ) ??
+                              '0';
+
                           final subtotal = price * qty;
-                          final discountValue = double.tryParse(discount) ?? 0.0;
+                          final discountValue =
+                              double.tryParse(discount) ?? 0.0;
                           final total = subtotal - discountValue;
-                          
+
                           return DataRow(
                             cells: [
                               DataCell(
                                 Text(
                                   _shortItemLabel(r['item'] as String?),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  r['item']
+                                          ?.toString()
+                                          .split('•')
+                                          .last
+                                          .trim() ??
+                                      '',
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -2079,7 +2145,9 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                       setState(() {
                                         _rows.removeAt(index);
                                       });
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
                                           content: Text('Item removed'),
                                           behavior: SnackBarBehavior.floating,

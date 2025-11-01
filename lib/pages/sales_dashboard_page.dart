@@ -23,7 +23,11 @@ class MySalesDashboardPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.black12),
             boxShadow: const [
-              BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
             ],
           ),
           child: Padding(
@@ -72,15 +76,23 @@ class MySalesDashboardPage extends StatelessWidget {
           tooltip: 'Back',
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('My Sales & to be Collected'),
+        title: const Text('My Sales & Outstanding'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
-            final crossAxisCount = width >= 1100 ? 3 : width >= 800 ? 3 : 2;
-            final aspect = width >= 1100 ? 1.2 : width >= 800 ? 1.15 : 1.1;
+            final crossAxisCount = width >= 1100
+                ? 3
+                : width >= 800
+                ? 3
+                : 2;
+            final aspect = width >= 1100
+                ? 1.2
+                : width >= 800
+                ? 1.15
+                : 1.1;
             return GridView.builder(
               padding: const EdgeInsets.only(bottom: 20),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -97,7 +109,8 @@ class MySalesDashboardPage extends StatelessWidget {
                       icon: Icons.request_quote_rounded,
                       title: 'My invoice',
                       subtitle: 'View my invoices',
-                      onTap: () => Navigator.of(context).pushNamed('/my-invoice'),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/my-invoice'),
                       color: const Color(0xFF10B981),
                     );
                   case 1:
@@ -105,7 +118,8 @@ class MySalesDashboardPage extends StatelessWidget {
                       icon: Icons.assignment_return_rounded,
                       title: 'My Return',
                       subtitle: 'View my returns',
-                      onTap: () => Navigator.of(context).pushNamed('/my-return'),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/my-return'),
                       color: const Color(0xFFEF4444),
                     );
                   default:
@@ -113,7 +127,8 @@ class MySalesDashboardPage extends StatelessWidget {
                       icon: Icons.payments_rounded,
                       title: 'To be Collected',
                       subtitle: 'Pending collections',
-                      onTap: () => Navigator.of(context).pushNamed('/to-be-collected'),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/to-be-collected'),
                       color: const Color(0xFF8B5CF6),
                     );
                 }
