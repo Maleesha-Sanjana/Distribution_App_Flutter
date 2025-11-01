@@ -7,18 +7,15 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
-  // No animations needed
-
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    //
   }
 
   @override
   void dispose() {
-    //
     super.dispose();
   }
 
@@ -29,54 +26,46 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     Widget buildCard({
       required IconData icon,
       required String title,
-      String? subtitle,
       required VoidCallback onTap,
       Color color = const Color(0xFF6366F1),
     }) {
       return InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: Ink(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.black12),
             boxShadow: const [
-              BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(14),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  radius: 28,
+                  radius: 26,
                   backgroundColor: color.withOpacity(0.15),
-                  child: Icon(icon, color: color, size: 28),
+                  child: Icon(icon, color: color, size: 26),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
                     color: theme.colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
               ],
             ),
           ),
@@ -92,8 +81,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           color: Theme.of(context).colorScheme.onSurface,
           tooltip: 'Back to Login',
           onPressed: () {
-            Navigator.of(context)
-                .pushNamedAndRemoveUntil('/', (route) => false);
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/', (route) => false);
           },
         ),
         title: const Text('Distribution - Ref Portal'),
@@ -103,16 +93,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
-            final crossAxisCount = width >= 1100 ? 4 : width >= 800 ? 3 : 2;
+            final crossAxisCount = width >= 1100
+                ? 4
+                : width >= 800
+                ? 3
+                : 2;
             const spacing = 16.0;
             final availableWidth = width - spacing * (crossAxisCount - 1);
             final itemWidth = availableWidth / crossAxisCount;
+
+            // 🔹 Reduced target height (smaller boxes)
             final targetHeight = width >= 1100
-                ? 260.0
+                ? 220.0
                 : width >= 800
-                    ? 240.0
-                    : 220.0;
+                ? 200.0
+                : 150.0;
+
             final aspect = itemWidth / targetHeight;
+
             return GridView.builder(
               padding: const EdgeInsets.only(bottom: 20),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -123,72 +121,57 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               itemCount: 8,
               itemBuilder: (context, index) {
-                switch (index) {
-                  case 0:
-                    return buildCard(
-                      icon: Icons.shopping_cart_rounded,
-                      title: 'Sales Order',
-                      subtitle: 'Create customer orders',
-                      onTap: () => Navigator.of(context).pushNamed('/sales-order'),
-                      color: const Color(0xFF6366F1),
-                    );
-                  case 1:
-                    return buildCard(
-                      icon: Icons.request_quote_rounded,
-                      title: 'Invoice',
-                      subtitle: 'Create and manage invoices',
-                      onTap: () => Navigator.of(context).pushNamed('/invoices'),
-                      color: const Color(0xFF10B981),
-                    );
-                  case 2:
-                    return buildCard(
-                      icon: Icons.description_rounded,
-                      title: 'Quotation',
-                      subtitle: 'Prepare price quotes',
-                      onTap: () => Navigator.of(context).pushNamed('/quotation'),
-                      color: const Color(0xFF22C55E),
-                    );
-                  case 3:
-                    return buildCard(
-                      icon: Icons.assignment_return_rounded,
-                      title: 'CRN (Customer Return)',
-                      subtitle: 'Process sales returns',
-                      onTap: () => Navigator.of(context).pushNamed('/sales-return'),
-                      color: const Color(0xFFEF4444),
-                    );
-                  case 4:
-                    return buildCard(
-                      icon: Icons.receipt_long_rounded,
-                      title: 'Receipts',
-                      subtitle: 'Record customer payments',
-                      onTap: () => Navigator.of(context).pushNamed('/receipt'),
-                      color: const Color(0xFF6366F1),
-                    );
-                  case 5:
-                    return buildCard(
-                      icon: Icons.person_add_alt_1_rounded,
-                      title: 'Customer Registration',
-                      subtitle: 'Onboard new customers',
-                      onTap: () => Navigator.of(context).pushNamed('/customer-create'),
-                      color: const Color(0xFFF59E0B),
-                    );
-                  case 6:
-                    return buildCard(
-                      icon: Icons.bar_chart_rounded,
-                      title: 'Stock Reports',
-                      subtitle: 'View stock availability',
-                      onTap: () => Navigator.of(context).pushNamed('/stock-reports'),
-                      color: const Color(0xFF0EA5E9),
-                    );
-                  default:
-                    return buildCard(
-                      icon: Icons.payments_rounded,
-                      title: 'My Sales & to be Collected',
-                      subtitle: 'Track sales and collections',
-                      onTap: () => Navigator.of(context).pushNamed('/my-sales'),
-                      color: const Color(0xFF8B5CF6),
-                    );
-                }
+                // 🔹 Slightly smaller bottom-row cards
+                double scaleFactor = (index >= 4) ? 0.9 : 1.0;
+
+                return Transform.scale(
+                  scale: scaleFactor,
+                  child: buildCard(
+                    icon: [
+                      Icons.shopping_cart_rounded,
+                      Icons.request_quote_rounded,
+                      Icons.description_rounded,
+                      Icons.assignment_return_rounded,
+                      Icons.receipt_long_rounded,
+                      Icons.person_add_alt_1_rounded,
+                      Icons.bar_chart_rounded,
+                      Icons.payments_rounded,
+                    ][index],
+                    title: [
+                      'Sales Order',
+                      'Invoice',
+                      'Quotation',
+                      'CRN (Customer Return)',
+                      'Receipts',
+                      'Customer Registration',
+                      'Stock Reports',
+                      'My Sales & Outstanding',
+                    ][index],
+                    onTap: () {
+                      final routes = [
+                        '/sales-order',
+                        '/invoices',
+                        '/quotation',
+                        '/sales-return',
+                        '/receipt',
+                        '/customer-create',
+                        '/stock-reports',
+                        '/my-sales',
+                      ];
+                      Navigator.of(context).pushNamed(routes[index]);
+                    },
+                    color: [
+                      const Color(0xFF6366F1),
+                      const Color(0xFF10B981),
+                      const Color(0xFF22C55E),
+                      const Color(0xFFEF4444),
+                      const Color(0xFF6366F1),
+                      const Color(0xFFF59E0B),
+                      const Color(0xFF0EA5E9),
+                      const Color(0xFF8B5CF6),
+                    ][index],
+                  ),
+                );
               },
             );
           },
