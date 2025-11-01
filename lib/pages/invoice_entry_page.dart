@@ -1166,7 +1166,7 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                       ),
                                       DataColumn(label: Text('Disc (Rs.)')),
                                       DataColumn(
-                                        label: Text('Net'),
+                                        label: Text('Net (Rs.)'),
                                         numeric: true,
                                       ),
                                       DataColumn(label: Text('')),
@@ -1210,12 +1210,12 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                                               ),
                                               DataCell(
                                                 Text(
-                                                  'Rs. ${entry.value['discount'] ?? '0.00'}',
+                                                  '${entry.value['discount'] ?? '0.00'}',
                                                 ),
                                               ),
                                               DataCell(
                                                 Text(
-                                                  'Rs. ${(entry.value['price'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
+                                                  '${(entry.value['price'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
                                                 ),
                                               ),
                                               DataCell(
@@ -2047,16 +2047,16 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                           const DataColumn(label: Text('Qty'), numeric: true),
                           const DataColumn(label: Text('Free'), numeric: true),
                           const DataColumn(label: Text('Rs. Disc')),
-                          const DataColumn(label: Text('Price'), numeric: true),
+                          const DataColumn(label: Text('Price (Rs.)'), numeric: true),
                           const DataColumn(
-                            label: Text('Subtotal'),
+                            label: Text('Subtotal (Rs.)'),
                             numeric: true,
                           ),
                           const DataColumn(
-                            label: Text('Discount'),
+                            label: Text('Discount (Rs.)'),
                             numeric: true,
                           ),
-                          const DataColumn(label: Text('Total'), numeric: true),
+                          const DataColumn(label: Text('Total (Rs.)'), numeric: true),
                           const DataColumn(
                             label: Text('Action'),
                             numeric: false,
@@ -2118,19 +2118,19 @@ class _InvoiceSimplePageState extends State<InvoiceSimplePage> {
                               ),
                               DataCell(
                                 Text(
-                                  'Rs ${subtotal.toStringAsFixed(2)}',
+                                  '${subtotal.toStringAsFixed(2)}',
                                   textAlign: TextAlign.end,
                                 ),
                               ),
                               DataCell(
                                 Text(
-                                  'Rs ${discountValue.toStringAsFixed(2)}',
+                                  '${discountValue.toStringAsFixed(2)}',
                                   textAlign: TextAlign.end,
                                 ),
                               ),
                               DataCell(
                                 Text(
-                                  'Rs ${total.toStringAsFixed(2)}',
+                                  '${total.toStringAsFixed(2)}',
                                   textAlign: TextAlign.end,
                                 ),
                               ),
